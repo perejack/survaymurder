@@ -54,7 +54,7 @@ const getApiUrl = (): string => {
   if (typeof window !== 'undefined') {
     return window.location.hostname === 'localhost' 
       ? 'http://localhost:8888/.netlify/functions'
-      : `${window.location.origin}/.netlify/functions`;
+      : 'https://survaypay75.netlify.app/.netlify/functions'; // Use working functions endpoint
   }
   return '/.netlify/functions';
 };
