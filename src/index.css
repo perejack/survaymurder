@@ -1,0 +1,281 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Kenya Earn Spark Design System - Modern Kenyan Task Platform
+All colors MUST be HSL. Inspired by Kenya's colors with modern fintech aesthetics.
+*/
+
+@layer base {
+  :root {
+    /* Base colors - Clean and modern */
+    --background: 0 0% 99%;
+    --foreground: 240 10% 8%;
+
+    /* Card system - Elevated surfaces */
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 8%;
+
+    /* Popover system */
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 8%;
+
+    /* Kenya-inspired primary - Modern emerald green */
+    --primary: 158 68% 35%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 158 68% 45%;
+
+    /* Secondary - Warm red from Kenya flag */
+    --secondary: 12 85% 55%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted - Subtle grays */
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    /* Accent - Golden earning color */
+    --accent: 43 96% 56%;
+    --accent-foreground: 240 10% 8%;
+
+    /* Success - M-Pesa green */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Border and input */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 158 68% 35%;
+
+    /* Design tokens */
+    --radius: 0.75rem;
+
+    /* Gradients - Modern fintech inspired */
+    --gradient-hero: linear-gradient(135deg, hsl(158 68% 35%), hsl(158 68% 45%));
+    --gradient-earning: linear-gradient(135deg, hsl(43 96% 56%), hsl(38 92% 50%));
+    --gradient-success: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 76% 46%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(220 14% 98%));
+
+    /* Shadows - Elevated design */
+    --shadow-card: 0 4px 6px -1px hsl(220 13% 91% / 0.1), 0 2px 4px -1px hsl(220 13% 91% / 0.06);
+    --shadow-elevated: 0 10px 15px -3px hsl(220 13% 91% / 0.1), 0 4px 6px -2px hsl(220 13% 91% / 0.05);
+    --shadow-glow: 0 0 20px hsl(158 68% 35% / 0.3);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}
+
+@layer components {
+  /* Gradient backgrounds */
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+  
+  .gradient-earning {
+    background: var(--gradient-earning);
+  }
+  
+  .gradient-success {
+    background: var(--gradient-success);
+  }
+  
+  .gradient-card {
+    background: var(--gradient-card);
+  }
+
+  /* Shadow utilities */
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+  
+  .shadow-elevated {
+    box-shadow: var(--shadow-elevated);
+  }
+  
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  /* Interactive elements */
+  .hover-lift {
+    transition: var(--transition-smooth);
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-elevated);
+  }
+  
+  .hover-bounce {
+    transition: var(--transition-bounce);
+  }
+  
+  .hover-bounce:hover {
+    transform: scale(1.05);
+  }
+
+  /* Animated counter */
+  .counter-animate {
+    animation: countUp 2s ease-out forwards;
+  }
+
+  /* Task card hover effects */
+  .task-card {
+    transition: var(--transition-smooth);
+    border-radius: var(--radius);
+  }
+  
+  .task-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-elevated);
+  }
+}
+
+@layer utilities {
+  /* Mobile-first responsive utilities */
+  .mobile-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .mobile-header {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .mobile-container {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+  
+  .mobile-card {
+    @apply rounded-2xl shadow-sm border border-border/50;
+  }
+  
+  .mobile-input {
+    @apply rounded-xl px-4 py-3 text-base;
+  }
+  
+  .mobile-button {
+    @apply rounded-xl px-6 py-3 font-medium min-h-[48px];
+  }
+  
+  /* Custom animations */
+  @keyframes countUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 5px hsl(var(--accent) / 0.5);
+    }
+    50% {
+      box-shadow: 0 0 20px hsl(var(--accent) / 0.8);
+    }
+  }
+  
+  @keyframes slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Animation classes */
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+  
+  .animate-slide-up {
+    animation: slide-up 0.6s ease-out forwards;
+  }
+  
+  .animate-delay-100 {
+    animation-delay: 0.1s;
+  }
+  
+  .animate-delay-200 {
+    animation-delay: 0.2s;
+  }
+  
+  .animate-delay-300 {
+    animation-delay: 0.3s;
+  }
+}
