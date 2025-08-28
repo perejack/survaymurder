@@ -1,7 +1,9 @@
 import { Shield, AlertTriangle, CheckCircle, ArrowRight, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { PhonePaymentPopup } from '@/components/ui/PhonePaymentPopup';
+import { useState } from 'react';
 
 interface AccountActivationModalProps {
   open: boolean;
@@ -14,10 +16,26 @@ const AccountActivationModal = ({
   onOpenChange, 
   onActivate 
 }: AccountActivationModalProps) => {
+  const [showPaymentPopup, setShowPaymentPopup] = useState(false);
+
+  const handleActivateClick = () => {
+    onOpenChange(false);
+    setShowPaymentPopup(true);
+  };
+
+  const handlePaymentSuccess = () => {
+    setShowPaymentPopup(false);
+    onActivate();
+  };
+
+  const handlePaymentClose = () => {
+    setShowPaymentPopup(false);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-[420px] p-0 overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-0 shadow-2xl">
-        <DialogTitle className="sr-only">Account Activation Required</DialogTitle>
         <div className="relative">
           {/* Background decorative elements */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-indigo-500/5 to-purple-500/5" />
@@ -100,10 +118,7 @@ const AccountActivationModal = ({
             {/* Call to action */}
             <div className="space-y-3">
               <Button
-                onClick={() => {
-                  onActivate();
-                  onOpenChange(false);
-                }}
+                onClick={handleActivateClick}
                 size="lg"
                 className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-6 text-lg hover-bounce animate-pulse-glow"
               >
@@ -132,6 +147,15 @@ const AccountActivationModal = ({
         </div>
       </DialogContent>
     </Dialog>
+
+    <PhonePaymentPopup
+      isOpen={showPaymentPopup}
+      onPaymentSuccess={handlePaymentSuccess}
+      onClose={handlePaymentClose}
+      amount={150}
+      description="Account Activation Fee"
+    />
+    </>
   );
 };
 

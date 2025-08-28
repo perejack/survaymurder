@@ -38,43 +38,16 @@ exports.handler = async (event, context) => {
   }
   
   try {
-    // Get reference from path parameter - handle both direct path and query params
-    let reference = null;
-    
-    // Try to get from path first
-    if (event.path && event.path.includes('/payment-status/')) {
-      reference = event.path.split('/payment-status/')[1];
-    }
-    
-    // If not found in path, try pathParameters (Netlify Functions format)
-    if (!reference && event.pathParameters && event.pathParameters.reference) {
-      reference = event.pathParameters.reference;
-    }
-    
-    // If still not found, try query parameters
-    if (!reference && event.queryStringParameters && event.queryStringParameters.reference) {
-      reference = event.queryStringParameters.reference;
-    }
-    
-    console.log('Payment status check - Reference:', reference, 'Path:', event.path, 'PathParams:', event.pathParameters);
+    // Get reference from path parameter
+    const reference = event.path.split('/').pop();
     
     if (!reference) {
       return {
         statusCode: 400,
         headers,
-        body: JSON.stringify({ 
-          success: false, 
-          message: 'Payment reference is required',
-          debug: {
-            path: event.path,
-            pathParameters: event.pathParameters,
-            queryStringParameters: event.queryStringParameters
-          }
-        })
+        body: JSON.stringify({ success: false, message: 'Payment reference is required' })
       };
     }
-    
-    console.log('Making PayHero API request for reference:', reference);
     
     const response = await axios({
       method: 'get',
@@ -82,11 +55,8 @@ exports.handler = async (event, context) => {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': generateBasicAuthToken()
-      },
-      timeout: 10000 // 10 second timeout
+      }
     });
-    
-    console.log('PayHero API response:', response.data);
     
     return {
       statusCode: 200,

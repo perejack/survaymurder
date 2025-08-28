@@ -83,7 +83,7 @@ exports.handler = async (event, context) => {
         success: true,
         message: 'Payment initiated successfully',
         data: {
-          externalReference: response.data.CheckoutRequestID || externalReference,
+          externalReference,
           checkoutRequestId: response.data.CheckoutRequestID
         }
       })
