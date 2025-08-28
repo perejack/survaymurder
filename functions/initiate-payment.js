@@ -1,7 +1,7 @@
 // Netlify function to initiate payment
 const axios = require('axios');
 
-// PayHero API credentials
+// PayHero API credentials - using the working credentials from quickmartstk
 const API_USERNAME = 'LOV1coowH9xMzNtThWjF';
 const API_PASSWORD = 'hAxiS4X7B8KWDO2QjdPa2zdEMn0dFw4JST5n0eoW';
 const CHANNEL_ID = 3146;
@@ -83,7 +83,7 @@ exports.handler = async (event, context) => {
         success: true,
         message: 'Payment initiated successfully',
         data: {
-          externalReference: response.data.CheckoutRequestID || externalReference,
+          externalReference,
           checkoutRequestId: response.data.CheckoutRequestID
         }
       })
