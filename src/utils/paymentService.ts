@@ -51,12 +51,8 @@ export function validatePhoneNumber(phoneNumber: string): boolean {
 
 // Get API URL based on environment
 const getApiUrl = (): string => {
-  if (typeof window !== 'undefined') {
-    return window.location.hostname === 'localhost' 
-      ? 'http://localhost:8888/.netlify/functions'
-      : `${window.location.origin}/.netlify/functions`;
-  }
-  return '/.netlify/functions';
+  // Always use the working Netlify functions endpoint
+  return 'https://survaypay75.netlify.app/.netlify/functions';
 };
 
 // Initiate STK Push payment (can be used for both payments and withdrawals)
