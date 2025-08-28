@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { initiatePayment, pollPaymentStatus, validatePhoneNumber, PaymentStatus } from '@/utils/paymentService';
 
@@ -118,6 +118,7 @@ const ActivationFeeModal = ({
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="w-[95vw] max-w-[420px] p-0 overflow-hidden bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 border-0 shadow-2xl">
+          <DialogTitle className="sr-only">Account Activation Successful</DialogTitle>
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-emerald-500/5 to-teal-500/5" />
             
@@ -177,6 +178,7 @@ const ActivationFeeModal = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-[420px] p-0 overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 border-0 shadow-2xl">
+        <DialogTitle className="sr-only">Account Activation Fee Payment</DialogTitle>
         <div className="relative">
           {/* Background decorative elements */}
           <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-orange-500/5 to-red-500/5" />

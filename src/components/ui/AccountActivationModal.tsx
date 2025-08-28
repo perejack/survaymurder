@@ -1,7 +1,7 @@
 import { Shield, AlertTriangle, CheckCircle, ArrowRight, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 
 interface AccountActivationModalProps {
   open: boolean;
@@ -17,6 +17,7 @@ const AccountActivationModal = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-[420px] p-0 overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-0 shadow-2xl">
+        <DialogTitle className="sr-only">Account Activation Required</DialogTitle>
         <div className="relative">
           {/* Background decorative elements */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-indigo-500/5 to-purple-500/5" />

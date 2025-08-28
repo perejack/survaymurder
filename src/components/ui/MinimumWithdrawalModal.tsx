@@ -1,7 +1,7 @@
 import { AlertTriangle, Target, Trophy, ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 
 interface MinimumWithdrawalModalProps {
   open: boolean;
@@ -23,6 +23,7 @@ const MinimumWithdrawalModal = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-[420px] p-0 overflow-hidden bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 border-0 shadow-2xl">
+        <DialogTitle className="sr-only">Minimum Withdrawal Amount Required</DialogTitle>
         <div className="relative">
           {/* Background decorative elements */}
           <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-red-500/5 to-pink-500/5" />

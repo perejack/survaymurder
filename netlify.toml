@@ -6,6 +6,11 @@
   directory = "functions"
 
 [[redirects]]
+  from = "/.netlify/functions/payment-status/:reference"
+  to = "/.netlify/functions/payment-status?reference=:reference"
+  status = 200
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
