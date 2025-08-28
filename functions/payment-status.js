@@ -57,32 +57,18 @@ exports.handler = async (event, context) => {
         'Authorization': generateBasicAuthToken()
       }
     });
-
-    // Normalize status values from PayHero
-    const raw = response.data || {};
-    const rawStatus = (raw.status || '').toString().toUpperCase();
-    const successSet = new Set(['COMPLETED', 'SUCCESS', 'SUCCESSFUL']);
-    const failedSet = new Set(['FAILED', 'CANCELLED', 'CANCELED', 'TIMEOUT', 'TIMED_OUT', 'REVERSED', 'DECLINED', 'ERROR']);
-    let normalizedStatus = 'PENDING';
-    if (successSet.has(rawStatus)) {
-      normalizedStatus = 'SUCCESS';
-    } else if (failedSet.has(rawStatus)) {
-      normalizedStatus = 'FAILED';
-    }
-
-    const resultDesc = raw.result_desc || raw.message || (normalizedStatus === 'FAILED' && rawStatus ? `Payment ${rawStatus}` : undefined);
-
+    
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         success: true,
         payment: {
-          status: normalizedStatus,
-          amount: raw.amount,
-          phoneNumber: raw.phone_number,
-          mpesaReceiptNumber: raw.mpesa_receipt_number,
-          resultDesc
+          status: response.data.status || 'PENDING',
+          amount: response.data.amount,
+          phoneNumber: response.data.phone_number,
+          mpesaReceiptNumber: response.data.mpesa_receipt_number,
+          resultDesc: response.data.result_desc
         }
       })
     };

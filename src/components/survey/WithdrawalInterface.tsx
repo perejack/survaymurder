@@ -1,13 +1,12 @@
 import { useState } from "react";
-import { ArrowLeft, Smartphone, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, Smartphone, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { initiateWithdrawal, pollWithdrawalStatus, validatePhoneNumber, WithdrawalStatus } from '@/utils/withdrawalService';
+import { STKWithdrawal } from "./STKWithdrawal";
 import MinimumWithdrawalModal from "@/components/ui/MinimumWithdrawalModal";
 import AccountActivationModal from "@/components/ui/AccountActivationModal";
 import ActivationFeeModal from "@/components/ui/ActivationFeeModal";
@@ -19,16 +18,13 @@ interface WithdrawalInterfaceProps {
 }
 
 const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: WithdrawalInterfaceProps) => {
-  const [phoneNumber, setPhoneNumber] = useState('');
   const [amount, setAmount] = useState('');
-  const [withdrawalMethod, setWithdrawalMethod] = useState('mpesa');
-  const [withdrawalStep, setWithdrawalStep] = useState<'input' | 'processing' | 'success' | 'failed'>('input');
-  const [statusMessage, setStatusMessage] = useState('');
+  const [showSTK, setShowSTK] = useState(false);
   const [showMinimumModal, setShowMinimumModal] = useState(false);
   const [showActivationModal, setShowActivationModal] = useState(false);
   const [showActivationFeeModal, setShowActivationFeeModal] = useState(false);
   const [isAccountActive, setIsAccountActive] = useState(false);
-    const { toast } = useToast();
+  const { toast } = useToast();
 
   const minWithdrawal = 1000;
   const maxWithdrawal = totalEarnings;
@@ -37,7 +33,7 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
     setAmount(value.toString());
   };
 
-  const handleWithdraw = async () => {
+  const handleWithdraw = () => {
     // Check minimum balance first
     if (totalEarnings < minWithdrawal) {
       setShowMinimumModal(true);
@@ -50,10 +46,10 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
       return;
     }
     
-    if (!phoneNumber || !amount) {
+    if (!amount) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all required fields.",
+        description: "Please enter withdrawal amount.",
         variant: "destructive"
       });
       return;
@@ -69,231 +65,36 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
       return;
     }
 
-    if (!validatePhoneNumber(phoneNumber)) {
-      toast({
-        title: "Invalid Phone Number",
-        description: "Please enter a valid Kenyan phone number.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setWithdrawalStep('processing');
-    setStatusMessage('STK Push sent. Please check your phone and enter your M-Pesa PIN.');
-
-    try {
-      const withdrawalResponse = await initiateWithdrawal(phoneNumber, withdrawAmount, 'EarnSpark Withdrawal');
-      
-      if (withdrawalResponse.success && withdrawalResponse.data?.externalReference) {
-        const stopPolling = pollWithdrawalStatus(
-          withdrawalResponse.data.externalReference,
-          (status: WithdrawalStatus) => {
-            if (status.success && status.payment) {
-              if (status.payment.status === 'SUCCESS') {
-                setWithdrawalStep('success');
-                setStatusMessage(`KSh ${withdrawAmount} has been sent to ${phoneNumber}`);
-                toast({
-                  title: "Withdrawal Successful!",
-                  description: `KSh ${withdrawAmount} has been sent to ${phoneNumber}`,
-                });
-                stopPolling();
-                // Auto-redirect shortly after success
-                setTimeout(() => {
-                  try {
-                    window.location.assign('/');
-                  } catch {}
-                }, 1500);
-              } else if (status.payment.status === 'FAILED') {
-                const failureReason = status.payment.resultDesc || "Please try again.";
-                stopPolling();
-
-                // If user cancelled from STK prompt, immediately return to input and prompt resend
-                if (/cancel/i.test(failureReason)) {
-                  setWithdrawalStep('input');
-                  setStatusMessage('');
-                  toast({
-                    title: "Payment Cancelled",
-                    description: "You cancelled the STK prompt. Please confirm to resend.",
-                    variant: "destructive"
-                  });
-                } else {
-                  // Generic failure flow with brief failed screen then reset
-                  setWithdrawalStep('failed');
-                  setStatusMessage(failureReason);
-                  toast({
-                    title: "Withdrawal Failed",
-                    description: failureReason,
-                    variant: "destructive"
-                  });
-
-                  setTimeout(() => {
-                    setWithdrawalStep('input');
-                    setStatusMessage('');
-                  }, 3000);
-                }
-              }
-            }
-          }
-        );
-      } else {
-        setWithdrawalStep('failed');
-        const errorMessage = withdrawalResponse.message || "Failed to initiate withdrawal.";
-        setStatusMessage(errorMessage);
-        toast({
-          title: "Withdrawal Failed",
-          description: errorMessage,
-          variant: "destructive"
-        });
-        
-        // Reset to input form after 3 seconds
-        setTimeout(() => {
-          setWithdrawalStep('input');
-          setStatusMessage('');
-        }, 3000);
-      }
-    } catch (error) {
-      setWithdrawalStep('failed');
-      setStatusMessage('Network error. Please check your connection and try again.');
-      toast({
-        title: "Network Error",
-        description: "Please check your connection and try again.",
-        variant: "destructive"
-      });
-      
-      // Reset to input form after 3 seconds
-      setTimeout(() => {
-        setWithdrawalStep('input');
-        setStatusMessage('');
-      }, 3000);
-    }
+    // Show STK component
+    setShowSTK(true);
   };
 
-  
-  // Processing State - Show loading with real-time status
-  if (withdrawalStep === 'processing') {
+  const handleSTKSuccess = (reference: string) => {
+    console.log('Withdrawal successful:', reference);
+    toast({
+      title: "Withdrawal Successful!",
+      description: `KSh ${amount} has been processed successfully.`,
+    });
+    // Return to dashboard after success
+    setTimeout(() => {
+      onBack();
+    }, 2000);
+  };
+
+  const handleSTKCancel = () => {
+    setShowSTK(false);
+  };
+
+  // Show STK component if activated
+  if (showSTK) {
     return (
-      <div className="max-w-lg mx-auto space-y-8 text-center">
-        <div className="space-y-6">
-          <div className="w-24 h-24 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
-            <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
-          </div>
-          
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-gray-900">Processing Withdrawal</h2>
-            <p className="text-muted-foreground">
-              {statusMessage}
-            </p>
-          </div>
-        </div>
-
-        <Card className="p-6 shadow-elevated">
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span>Amount:</span>
-              <span className="font-bold text-lg">KSh {amount}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>To:</span>
-              <span className="font-medium">{phoneNumber}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Status:</span>
-              <span className="text-blue-600 font-medium">Waiting for confirmation</span>
-            </div>
-          </div>
-        </Card>
-
-        <Alert>
-          <Smartphone className="h-4 w-4" />
-          <AlertDescription>
-            Please check your phone and enter your M-Pesa PIN to complete the withdrawal.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
-  // Failed State - Show error with auto-reset
-  if (withdrawalStep === 'failed') {
-    return (
-      <div className="max-w-lg mx-auto space-y-8 text-center">
-        <div className="space-y-6">
-          <div className="w-24 h-24 mx-auto bg-red-100 rounded-full flex items-center justify-center">
-            <AlertCircle className="w-12 h-12 text-red-600" />
-          </div>
-          
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-red-600">Withdrawal Failed</h2>
-            <p className="text-muted-foreground">
-              {statusMessage}
-            </p>
-          </div>
-        </div>
-
-        <Card className="p-6 shadow-elevated border-red-200">
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span>Amount:</span>
-              <span className="font-bold text-lg">KSh {amount}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>To:</span>
-              <span className="font-medium">{phoneNumber}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Status:</span>
-              <span className="text-red-600 font-medium">Failed</span>
-            </div>
-          </div>
-        </Card>
-
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Returning to withdrawal form in a few seconds...
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
-  // Success State
-  if (withdrawalStep === 'success') {
-    return (
-      <div className="max-w-lg mx-auto space-y-8 text-center">
-        <div className="space-y-6">
-          <div className="w-24 h-24 mx-auto gradient-success rounded-full flex items-center justify-center animate-bounce shadow-glow">
-            <CheckCircle2 className="w-12 h-12 text-white" />
-          </div>
-          
-          <div className="space-y-2">
-            <h2 className="text-3xl font-bold text-success">Withdrawal Successful!</h2>
-            <p className="text-muted-foreground">
-              Your money has been sent to your M-Pesa account.
-            </p>
-          </div>
-        </div>
-
-        <Card className="p-6 shadow-elevated">
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span>Amount Withdrawn:</span>
-              <span className="font-bold text-lg">KSh {amount}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Sent to:</span>
-              <span className="font-medium">{phoneNumber}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Transaction ID:</span>
-              <span className="font-mono text-sm">TXN{Date.now().toString().slice(-8)}</span>
-            </div>
-          </div>
-        </Card>
-
-        <Button onClick={onBack} size="lg" className="w-full">
-          Continue Earning
-        </Button>
+      <div className="max-w-lg mx-auto">
+        <STKWithdrawal
+          amount={parseInt(amount)}
+          onSuccess={handleSTKSuccess}
+          onCancel={handleSTKCancel}
+          description="EarnSpark Withdrawal"
+        />
       </div>
     );
   }
@@ -316,40 +117,6 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
 
       <Card className="p-6 shadow-elevated">
         <div className="space-y-6">
-          {/* Withdrawal Method */}
-          <div className="space-y-3">
-            <Label className="text-base font-semibold">Withdrawal Method</Label>
-            <RadioGroup value={withdrawalMethod} onValueChange={setWithdrawalMethod}>
-              <div className="flex items-center space-x-3 p-4 rounded-lg border border-border hover:bg-accent/5">
-                <RadioGroupItem value="mpesa" id="mpesa" />
-                <Label htmlFor="mpesa" className="flex items-center gap-3 flex-1 cursor-pointer">
-                  <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-                    <Smartphone className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <div className="font-medium">M-Pesa</div>
-                    <div className="text-sm text-muted-foreground">Instant transfer</div>
-                  </div>
-                </Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          {/* Phone Number */}
-          <div className="space-y-3">
-            <Label htmlFor="phone" className="text-base font-semibold">
-              M-Pesa Phone Number
-            </Label>
-            <Input
-              id="phone"
-              type="tel"
-              placeholder="07XXXXXXXX or 01XXXXXXXX"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              className="text-base p-3"
-            />
-          </div>
-
           {/* Amount */}
           <div className="space-y-3">
             <Label htmlFor="amount" className="text-base font-semibold">
@@ -398,16 +165,11 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
           {/* Withdraw Button */}
           <Button
             onClick={handleWithdraw}
-            disabled={withdrawalStep === 'processing' || !phoneNumber || !amount || totalEarnings < minWithdrawal}
+            disabled={!amount || totalEarnings < minWithdrawal}
             size="lg"
             className="w-full gradient-earning text-white hover:opacity-90 text-lg py-6"
           >
-            {withdrawalStep === 'processing' ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Processing...
-              </>
-            ) : totalEarnings < minWithdrawal ? (
+            {totalEarnings < minWithdrawal ? (
               <>
                 Need KSh {(minWithdrawal - totalEarnings).toLocaleString()} More
               </>
