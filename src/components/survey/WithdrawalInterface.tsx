@@ -1,437 +1,443 @@
-import { useState } from "react";
-import { ArrowLeft, Smartphone, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useToast } from "@/hooks/use-toast";
-import { initiateWithdrawal, pollWithdrawalStatus, validatePhoneNumber, WithdrawalStatus } from '@/utils/withdrawalService';
-import MinimumWithdrawalModal from "@/components/ui/MinimumWithdrawalModal";
-import AccountActivationModal from "@/components/ui/AccountActivationModal";
-import ActivationFeeModal from "@/components/ui/ActivationFeeModal";
+import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Smartphone, Send, ArrowLeft, Shield, CheckCircle, AlertCircle, Loader2, CreditCard, Key } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 interface WithdrawalInterfaceProps {
-  totalEarnings: number;
-  onBack: () => void;
-  onStartEarning?: () => void;
+  earnings: number;
+  onWithdrawalSuccess: () => void;
 }
 
-const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: WithdrawalInterfaceProps) => {
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [amount, setAmount] = useState('');
-  const [withdrawalMethod, setWithdrawalMethod] = useState('mpesa');
-  const [withdrawalStep, setWithdrawalStep] = useState<'input' | 'processing' | 'success' | 'failed'>('input');
-  const [statusMessage, setStatusMessage] = useState('');
-  const [showMinimumModal, setShowMinimumModal] = useState(false);
-  const [showActivationModal, setShowActivationModal] = useState(false);
-  const [showActivationFeeModal, setShowActivationFeeModal] = useState(false);
-  const [isAccountActive, setIsAccountActive] = useState(false);
-    const { toast } = useToast();
+export default function WithdrawalInterface({ earnings, onWithdrawalSuccess }: WithdrawalInterfaceProps) {
+  const [phoneNumber, setPhoneNumber] = useState("")
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [paymentReference, setPaymentReference] = useState<string | null>(null)
+  const [status, setStatus] = useState<'idle' | 'pending' | 'success' | 'failed' | 'awaiting-code' | 'verifying-code'>('idle')
+  const [pollInterval, setPollInterval] = useState<NodeJS.Timeout | null>(null)
+  const [transactionCode, setTransactionCode] = useState("")
+  const [codeTimer, setCodeTimer] = useState<NodeJS.Timeout | null>(null)
+  const { toast } = useToast()
 
-  const minWithdrawal = 1000;
-  const maxWithdrawal = totalEarnings;
+  // API URL - Use current site's Netlify functions
+  const API_URL = window.location.hostname === 'localhost' 
+    ? 'http://localhost:8888/.netlify/functions'
+    : `${window.location.origin}/.netlify/functions`
 
-  const handleQuickAmount = (value: number) => {
-    setAmount(value.toString());
-  };
-
-  const handleWithdraw = async () => {
-    // Check minimum balance first
-    if (totalEarnings < minWithdrawal) {
-      setShowMinimumModal(true);
-      return;
-    }
-
-    // Check account activation status
-    if (!isAccountActive) {
-      setShowActivationModal(true);
-      return;
+  // Format phone number for Kenyan format
+  const formatPhoneNumber = (input: string) => {
+    // Remove non-digit characters
+    let cleaned = input.replace(/\D/g, '')
+    
+    // Format for Kenya number
+    if (cleaned.startsWith('0')) {
+      cleaned = '254' + cleaned.substring(1)
     }
     
-    if (!phoneNumber || !amount) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields.",
-        variant: "destructive"
-      });
-      return;
+    if (cleaned.startsWith('+')) {
+      cleaned = cleaned.substring(1)
     }
-
-    const withdrawAmount = parseInt(amount);
-    if (withdrawAmount < minWithdrawal || withdrawAmount > maxWithdrawal) {
-      toast({
-        title: "Invalid Amount",
-        description: `Amount must be between KSh ${minWithdrawal} and KSh ${maxWithdrawal}.`,
-        variant: "destructive"
-      });
-      return;
+    
+    if (!cleaned.startsWith('254')) {
+      cleaned = '254' + cleaned
     }
+    
+    return cleaned
+  }
 
+  // Validate Kenyan phone number
+  const validatePhoneNumber = (phoneNumber: string) => {
+    const formatted = formatPhoneNumber(phoneNumber)
+    return formatted.length === 12 && formatted.startsWith('254')
+  }
+
+  // Reset status when trying payment again
+  const initiatePayment = async () => {
+    // Reset status for new payment attempt
+    setStatus('idle')
     if (!validatePhoneNumber(phoneNumber)) {
       toast({
         title: "Invalid Phone Number",
-        description: "Please enter a valid Kenyan phone number.",
+        description: "Please enter a valid Kenyan phone number",
         variant: "destructive"
-      });
-      return;
+      })
+      return
     }
 
-    setWithdrawalStep('processing');
-    setStatusMessage('STK Push sent. Please check your phone and enter your M-Pesa PIN.');
+    setIsProcessing(true)
+    setStatus('pending')
 
     try {
-      const withdrawalResponse = await initiateWithdrawal(phoneNumber, withdrawAmount, 'EarnSpark Withdrawal');
+      const formattedPhone = formatPhoneNumber(phoneNumber)
       
-      if (withdrawalResponse.success && withdrawalResponse.data?.externalReference) {
-        const stopPolling = pollWithdrawalStatus(
-          withdrawalResponse.data.externalReference,
-          (status: WithdrawalStatus) => {
-            if (status.success && status.payment) {
-              if (status.payment.status === 'SUCCESS') {
-                setWithdrawalStep('success');
-                setStatusMessage(`KSh ${withdrawAmount} has been sent to ${phoneNumber}`);
-                toast({
-                  title: "Withdrawal Successful!",
-                  description: `KSh ${withdrawAmount} has been sent to ${phoneNumber}`,
-                });
-                stopPolling();
-              } else if (status.payment.status === 'FAILED') {
-                setWithdrawalStep('failed');
-                const failureReason = status.payment.resultDesc || "Please try again.";
-                setStatusMessage(failureReason);
-                toast({
-                  title: "Withdrawal Failed",
-                  description: failureReason,
-                  variant: "destructive"
-                });
-                stopPolling();
-                
-                // Reset to input form after 3 seconds
-                setTimeout(() => {
-                  setWithdrawalStep('input');
-                  setStatusMessage('');
-                }, 3000);
-              }
-            }
-          }
-        );
+      const response = await fetch(`${API_URL}/initiate-payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          phoneNumber: formattedPhone,
+          userId: 'withdrawal-user',
+          amount: earnings,
+          description: `SurvayPay Withdrawal - KSH ${earnings}`
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.success && data.data.externalReference) {
+        setPaymentReference(data.data.externalReference)
+        
+        toast({
+          title: "STK Push Sent",
+          description: "Please complete the payment on your phone",
+        })
+        
+        // Start polling for payment status and code timer
+        startPolling(data.data.externalReference)
+        startCodeTimer()
       } else {
-        setWithdrawalStep('failed');
-        const errorMessage = withdrawalResponse.message || "Failed to initiate withdrawal.";
-        setStatusMessage(errorMessage);
+        setStatus('failed')
+        setIsProcessing(false)
         toast({
           title: "Withdrawal Failed",
-          description: errorMessage,
+          description: data.message || "Failed to initiate withdrawal",
           variant: "destructive"
-        });
-        
-        // Reset to input form after 3 seconds
-        setTimeout(() => {
-          setWithdrawalStep('input');
-          setStatusMessage('');
-        }, 3000);
+        })
       }
     } catch (error) {
-      setWithdrawalStep('failed');
-      setStatusMessage('Network error. Please check your connection and try again.');
+      console.error('Withdrawal initiation error:', error)
+      setStatus('failed')
+      setIsProcessing(false)
       toast({
         title: "Network Error",
-        description: "Please check your connection and try again.",
+        description: "Please check your connection and try again",
         variant: "destructive"
-      });
-      
-      // Reset to input form after 3 seconds
-      setTimeout(() => {
-        setWithdrawalStep('input');
-        setStatusMessage('');
-      }, 3000);
+      })
     }
-  };
-
-  
-  // Processing State - Show loading with real-time status
-  if (withdrawalStep === 'processing') {
-    return (
-      <div className="max-w-lg mx-auto space-y-8 text-center">
-        <div className="space-y-6">
-          <div className="w-24 h-24 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
-            <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
-          </div>
-          
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-gray-900">Processing Withdrawal</h2>
-            <p className="text-muted-foreground">
-              {statusMessage}
-            </p>
-          </div>
-        </div>
-
-        <Card className="p-6 shadow-elevated">
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span>Amount:</span>
-              <span className="font-bold text-lg">KSh {amount}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>To:</span>
-              <span className="font-medium">{phoneNumber}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Status:</span>
-              <span className="text-blue-600 font-medium">Waiting for confirmation</span>
-            </div>
-          </div>
-        </Card>
-
-        <Alert>
-          <Smartphone className="h-4 w-4" />
-          <AlertDescription>
-            Please check your phone and enter your M-Pesa PIN to complete the withdrawal.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
   }
 
-  // Failed State - Show error with auto-reset
-  if (withdrawalStep === 'failed') {
-    return (
-      <div className="max-w-lg mx-auto space-y-8 text-center">
-        <div className="space-y-6">
-          <div className="w-24 h-24 mx-auto bg-red-100 rounded-full flex items-center justify-center">
-            <AlertCircle className="w-12 h-12 text-red-600" />
-          </div>
+  // Poll for payment status
+  const startPolling = (reference: string) => {
+    if (pollInterval) {
+      clearInterval(pollInterval)
+    }
+
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch(`${API_URL}/payment-status/${reference}`)
+        const data = await response.json()
+        
+        // Log full response for debugging
+        console.log('Full payment status response:', data);
+
+        if (data.success && data.payment) {
+          // Log the payment data for debugging
+          console.log('Payment status response:', data.payment);
           
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-red-600">Withdrawal Failed</h2>
-            <p className="text-muted-foreground">
-              {statusMessage}
-            </p>
-          </div>
-        </div>
+          // Check for various success status formats
+          const status = data.payment.status?.toUpperCase();
+          if (status === 'SUCCESS' || status === 'COMPLETE' || status === 'COMPLETED' || status === '0' || data.payment.mpesaReceiptNumber) {
+            clearInterval(interval)
+            setStatus('success')
+            setIsProcessing(false)
+            
+            toast({
+              title: "Withdrawal Successful!",
+              description: "Your earnings have been sent to your M-Pesa account.",
+            })
+            
+            // Call success callback after showing success message
+            setTimeout(() => {
+              onWithdrawalSuccess()
+            }, 2000)
+          } else if (data.payment.status === 'FAILED') {
+            clearInterval(interval)
+            setStatus('failed')
+            setIsProcessing(false)
+            
+            toast({
+              title: "Withdrawal Failed",
+              description: "Transaction was not completed. Please try again.",
+              variant: "destructive"
+            })
+          }
+        }
+      } catch (error) {
+        console.error('Error checking payment status:', error)
+        // Continue polling on error
+      }
+    }, 5000) // Check every 5 seconds
 
-        <Card className="p-6 shadow-elevated border-red-200">
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span>Amount:</span>
-              <span className="font-bold text-lg">KSh {amount}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>To:</span>
-              <span className="font-medium">{phoneNumber}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Status:</span>
-              <span className="text-red-600 font-medium">Failed</span>
-            </div>
-          </div>
-        </Card>
-
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Returning to withdrawal form in a few seconds...
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
+    setPollInterval(interval)
   }
 
-  // Success State
-  if (withdrawalStep === 'success') {
-    return (
-      <div className="max-w-lg mx-auto space-y-8 text-center">
-        <div className="space-y-6">
-          <div className="w-24 h-24 mx-auto gradient-success rounded-full flex items-center justify-center animate-bounce shadow-glow">
-            <CheckCircle2 className="w-12 h-12 text-white" />
-          </div>
-          
-          <div className="space-y-2">
-            <h2 className="text-3xl font-bold text-success">Withdrawal Successful!</h2>
-            <p className="text-muted-foreground">
-              Your money has been sent to your M-Pesa account.
-            </p>
-          </div>
-        </div>
-
-        <Card className="p-6 shadow-elevated">
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span>Amount Withdrawn:</span>
-              <span className="font-bold text-lg">KSh {amount}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Sent to:</span>
-              <span className="font-medium">{phoneNumber}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Transaction ID:</span>
-              <span className="font-mono text-sm">TXN{Date.now().toString().slice(-8)}</span>
-            </div>
-          </div>
-        </Card>
-
-        <Button onClick={onBack} size="lg" className="w-full">
-          Continue Earning
-        </Button>
-      </div>
-    );
+  // Validate transaction code
+  const validateTransactionCode = (code: string) => {
+    return code.length >= 7 && code.toUpperCase().startsWith('T')
   }
+
+  // Handle transaction code verification
+  const verifyTransactionCode = async () => {
+    if (!validateTransactionCode(transactionCode)) {
+      toast({
+        title: "Wrong Code",
+        description: "Wrong code, try again",
+        variant: "destructive"
+      })
+      return
+    }
+
+    setStatus('verifying-code')
+    
+    // Simulate verification (in real app, you'd verify with your backend)
+    setTimeout(() => {
+      toast({
+        title: "Transaction Verified!",
+        description: "Your withdrawal has been processed successfully.",
+      })
+      
+      // Clear timers and reset state before calling onSuccess
+      if (codeTimer) {
+        clearTimeout(codeTimer)
+        setCodeTimer(null)
+      }
+      if (pollInterval) {
+        clearInterval(pollInterval)
+        setPollInterval(null)
+      }
+      
+      setTimeout(() => {
+        onWithdrawalSuccess()
+      }, 2000)
+    }, 1500)
+  }
+
+  // Start 25-second timer after payment processing
+  const startCodeTimer = () => {
+    const timer = setTimeout(() => {
+      setStatus('awaiting-code')
+    }, 25000) // 25 seconds
+    
+    setCodeTimer(timer)
+  }
+
+  // Cleanup polling and timers on unmount
+  useEffect(() => {
+    return () => {
+      if (pollInterval) {
+        clearInterval(pollInterval)
+      }
+      if (codeTimer) {
+        clearTimeout(codeTimer)
+      }
+    }
+  }, [pollInterval, codeTimer])
 
   return (
-    <div className="max-w-lg mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" onClick={onBack} className="gap-2">
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </Button>
-        <div>
-          <h2 className="text-2xl font-bold">Withdraw Earnings</h2>
-          <p className="text-muted-foreground">
-            Available balance: KSh {totalEarnings.toLocaleString()}
+    <Card className="w-full max-w-md mx-auto border-card-border bg-card backdrop-blur-sm">
+      <CardHeader className="text-center">
+        <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Smartphone className="w-8 h-8 text-white" />
+        </div>
+        <CardTitle className="text-xl text-foreground">M-Pesa Withdrawal</CardTitle>
+        <CardDescription>Enter your phone number to receive your earnings</CardDescription>
+      </CardHeader>
+
+      <CardContent className="space-y-6">
+        {/* Payment Amount */}
+        <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
+          <div className="flex items-center gap-2 text-primary mb-2">
+            <CheckCircle className="w-4 h-4" />
+            <span className="font-medium">Withdrawal Amount: KSH {earnings}</span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            You will receive an STK push to complete your withdrawal
           </p>
         </div>
-      </div>
 
-      <Card className="p-6 shadow-elevated">
-        <div className="space-y-6">
-          {/* Withdrawal Method */}
-          <div className="space-y-3">
-            <Label className="text-base font-semibold">Withdrawal Method</Label>
-            <RadioGroup value={withdrawalMethod} onValueChange={setWithdrawalMethod}>
-              <div className="flex items-center space-x-3 p-4 rounded-lg border border-border hover:bg-accent/5">
-                <RadioGroupItem value="mpesa" id="mpesa" />
-                <Label htmlFor="mpesa" className="flex items-center gap-3 flex-1 cursor-pointer">
-                  <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-                    <Smartphone className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <div className="font-medium">M-Pesa</div>
-                    <div className="text-sm text-muted-foreground">Instant transfer</div>
-                  </div>
-                </Label>
+        {/* Phone Number Input */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">Phone Number</label>
+          <Input
+            type="tel"
+            placeholder="712345678"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            className="h-12"
+            disabled={isProcessing}
+          />
+          <p className="text-xs text-muted-foreground">
+            Enter your Safaricom number (e.g., 0712345678 or 712345678)
+          </p>
+        </div>
+
+        {/* Status Display */}
+        {status === 'pending' && (
+          <div className="bg-blue-500/10 rounded-lg p-4 border border-blue-500/20">
+            <div className="flex items-center gap-2 text-blue-500 mb-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="font-medium">Processing Withdrawal</span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              STK push sent. Please complete the payment on your phone.
+            </p>
+          </div>
+        )}
+
+        {status === 'success' && (
+          <div className="bg-success/10 rounded-lg p-4 border border-success/20">
+            <div className="flex items-center gap-2 text-success mb-2">
+              <CheckCircle className="w-4 h-4" />
+              <span className="font-medium">Withdrawal Successful!</span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Your earnings have been sent to your M-Pesa account.
+            </p>
+          </div>
+        )}
+
+        {status === 'awaiting-code' && (
+          <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl p-6 border border-purple-500/20 backdrop-blur-sm">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CreditCard className="w-8 h-8 text-white" />
               </div>
-            </RadioGroup>
-          </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Enter Transaction Code</h3>
+              <p className="text-sm text-muted-foreground">
+                Please enter your M-Pesa transaction code to complete verification
+              </p>
+            </div>
 
-          {/* Phone Number */}
-          <div className="space-y-3">
-            <Label htmlFor="phone" className="text-base font-semibold">
-              M-Pesa Phone Number
-            </Label>
-            <Input
-              id="phone"
-              type="tel"
-              placeholder="07XXXXXXXX or 01XXXXXXXX"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              className="text-base p-3"
-            />
-          </div>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                  <Key className="w-4 h-4" />
+                  Transaction Code
+                </label>
+                <Input
+                  type="text"
+                  placeholder="e.g., JTNKLGBVXXEK"
+                  value={transactionCode}
+                  onChange={(e) => setTransactionCode(e.target.value.toUpperCase())}
+                  className="h-12 text-center text-lg font-mono tracking-wider"
+                  maxLength={15}
+                />
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">
+                    Must be 7+ characters
+                  </span>
+                  <span className={`font-medium ${
+                    validateTransactionCode(transactionCode) 
+                      ? 'text-success' 
+                      : 'text-muted-foreground'
+                  }`}>
+                    {transactionCode.length}/15
+                  </span>
+                </div>
+              </div>
 
-          {/* Amount */}
-          <div className="space-y-3">
-            <Label htmlFor="amount" className="text-base font-semibold">
-              Withdrawal Amount (KSh)
-            </Label>
-            <Input
-              id="amount"
-              type="number"
-              placeholder="Enter amount"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              min={minWithdrawal}
-              max={maxWithdrawal}
-              className="text-base p-3"
-            />
-            
-            {/* Quick Amount Buttons */}
-            <div className="flex gap-2 flex-wrap">
-              {[1000, 2000, Math.min(5000, totalEarnings), totalEarnings].filter(v => v >= minWithdrawal).map((value) => (
-                <Button
-                  key={value}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleQuickAmount(value)}
-                  className="text-sm"
-                  disabled={value > totalEarnings}
-                >
-                  KSh {value.toLocaleString()}
-                </Button>
-              ))}
+              <div className="bg-blue-500/10 rounded-lg p-3 border border-blue-500/20">
+                <p className="text-xs text-blue-600 font-medium mb-1">💡 Where to find your code:</p>
+                <p className="text-xs text-muted-foreground">
+                  Check your SMS from M-Pesa for your transaction confirmation code
+                </p>
+              </div>
+
+              <Button
+                onClick={verifyTransactionCode}
+                disabled={!validateTransactionCode(transactionCode) || status === 'verifying-code'}
+                className="w-full h-12 text-base font-semibold bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+              >
+                {status === 'verifying-code' ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Verify & Continue
+                  </>
+                )}
+              </Button>
             </div>
           </div>
+        )}
 
-          {/* Info Alert */}
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              • Minimum withdrawal: KSh {minWithdrawal}
-              <br />
-              • Processing time: Instant to 5 minutes
-              <br />
-              • No transaction fees
-            </AlertDescription>
-          </Alert>
+        {status === 'verifying-code' && (
+          <div className="bg-purple-500/10 rounded-lg p-4 border border-purple-500/20">
+            <div className="flex items-center gap-2 text-purple-500 mb-2">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="font-medium">Verifying Transaction</span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Please wait while we verify your transaction code...
+            </p>
+          </div>
+        )}
 
-          {/* Withdraw Button */}
+        {status === 'failed' && (
+          <div className="bg-destructive/10 rounded-lg p-4 border border-destructive/20">
+            <div className="flex items-center gap-2 text-destructive mb-2">
+              <AlertCircle className="w-4 h-4" />
+              <span className="font-medium">Withdrawal Failed</span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Transaction was not completed. Please try withdrawal again.
+            </p>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="space-y-3">
           <Button
-            onClick={handleWithdraw}
-            disabled={withdrawalStep === 'processing' || !phoneNumber || !amount || totalEarnings < minWithdrawal}
-            size="lg"
-            className="w-full gradient-earning text-white hover:opacity-90 text-lg py-6"
+            onClick={initiatePayment}
+            disabled={isProcessing || !phoneNumber || status === 'success' || status === 'awaiting-code' || status === 'verifying-code'}
+            className="w-full h-12 text-base font-semibold bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
           >
-            {withdrawalStep === 'processing' ? (
+            {isProcessing ? (
               <>
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 Processing...
               </>
-            ) : totalEarnings < minWithdrawal ? (
+            ) : status === 'failed' ? (
               <>
-                Need KSh {(minWithdrawal - totalEarnings).toLocaleString()} More
+                <Send className="w-4 h-4 mr-2" />
+                Try Withdrawal Again
               </>
             ) : (
               <>
-                <Smartphone className="w-5 h-5" />
-                Withdraw KSh {amount || '0'}
+                <Send className="w-4 h-4 mr-2" />
+                Withdraw KSH {earnings}
               </>
             )}
           </Button>
         </div>
-      </Card>
 
-      {/* Minimum Withdrawal Modal */}
-      <MinimumWithdrawalModal
-        open={showMinimumModal}
-        onOpenChange={setShowMinimumModal}
-        currentBalance={totalEarnings}
-        onStartEarning={() => onStartEarning?.()}
-      />
+        {/* Security Info */}
+        <div className="bg-success/10 rounded-lg p-4 border border-success/20">
+          <div className="flex items-center gap-2 text-success mb-2">
+            <Shield className="w-4 h-4" />
+            <span className="font-medium">Secure M-Pesa Withdrawal</span>
+          </div>
+          <ul className="text-xs text-muted-foreground space-y-1">
+            <li>• Check your phone for STK push notification</li>
+            <li>• Enter your M-Pesa PIN to complete withdrawal</li>
+            <li>• Funds are processed securely through Safaricom</li>
+          </ul>
+        </div>
 
-      {/* Account Activation Modal */}
-      <AccountActivationModal
-        open={showActivationModal}
-        onOpenChange={setShowActivationModal}
-        onActivate={() => setShowActivationFeeModal(true)}
-      />
-
-      {/* Activation Fee Modal */}
-      <ActivationFeeModal
-        open={showActivationFeeModal}
-        onOpenChange={setShowActivationFeeModal}
-        onSuccess={() => {
-          setIsAccountActive(true);
-          toast({
-            title: "Account Activated!",
-            description: "You can now withdraw directly to M-Pesa.",
-          });
-        }}
-      />
-    </div>
-  );
-};
-
-export default WithdrawalInterface;
+        {/* Footer */}
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+            <Smartphone className="w-3 h-3" />
+            <span>Powered by M-Pesa • Instant verification</span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
