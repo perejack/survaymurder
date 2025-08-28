@@ -22,8 +22,8 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
   const [phoneNumber, setPhoneNumber] = useState('');
   const [amount, setAmount] = useState('');
   const [withdrawalMethod, setWithdrawalMethod] = useState('mpesa');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [isComplete, setIsComplete] = useState(false);
+  const [withdrawalStep, setWithdrawalStep] = useState<'input' | 'processing' | 'success' | 'failed'>('input');
+  const [statusMessage, setStatusMessage] = useState('');
   const [showMinimumModal, setShowMinimumModal] = useState(false);
   const [showActivationModal, setShowActivationModal] = useState(false);
   const [showActivationFeeModal, setShowActivationFeeModal] = useState(false);
@@ -78,7 +78,8 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
       return;
     }
 
-    setIsProcessing(true);
+    setWithdrawalStep('processing');
+    setStatusMessage('STK Push sent. Please check your phone and enter your M-Pesa PIN.');
 
     try {
       const withdrawalResponse = await initiateWithdrawal(phoneNumber, withdrawAmount, 'EarnSpark Withdrawal');
@@ -89,45 +90,157 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
           (status: WithdrawalStatus) => {
             if (status.success && status.payment) {
               if (status.payment.status === 'SUCCESS') {
-                setIsProcessing(false);
-                setIsComplete(true);
+                setWithdrawalStep('success');
+                setStatusMessage(`KSh ${withdrawAmount} has been sent to ${phoneNumber}`);
                 toast({
                   title: "Withdrawal Successful!",
                   description: `KSh ${withdrawAmount} has been sent to ${phoneNumber}`,
                 });
                 stopPolling();
               } else if (status.payment.status === 'FAILED') {
-                setIsProcessing(false);
+                setWithdrawalStep('failed');
+                const failureReason = status.payment.resultDesc || "Please try again.";
+                setStatusMessage(failureReason);
                 toast({
                   title: "Withdrawal Failed",
-                  description: status.payment.resultDesc || "Please try again.",
+                  description: failureReason,
                   variant: "destructive"
                 });
                 stopPolling();
+                
+                // Reset to input form after 3 seconds
+                setTimeout(() => {
+                  setWithdrawalStep('input');
+                  setStatusMessage('');
+                }, 3000);
               }
             }
           }
         );
       } else {
-        setIsProcessing(false);
+        setWithdrawalStep('failed');
+        const errorMessage = withdrawalResponse.message || "Failed to initiate withdrawal.";
+        setStatusMessage(errorMessage);
         toast({
           title: "Withdrawal Failed",
-          description: withdrawalResponse.message || "Failed to initiate withdrawal.",
+          description: errorMessage,
           variant: "destructive"
         });
+        
+        // Reset to input form after 3 seconds
+        setTimeout(() => {
+          setWithdrawalStep('input');
+          setStatusMessage('');
+        }, 3000);
       }
     } catch (error) {
-      setIsProcessing(false);
+      setWithdrawalStep('failed');
+      setStatusMessage('Network error. Please check your connection and try again.');
       toast({
         title: "Network Error",
         description: "Please check your connection and try again.",
         variant: "destructive"
       });
+      
+      // Reset to input form after 3 seconds
+      setTimeout(() => {
+        setWithdrawalStep('input');
+        setStatusMessage('');
+      }, 3000);
     }
   };
 
   
-  if (isComplete) {
+  // Processing State - Show loading with real-time status
+  if (withdrawalStep === 'processing') {
+    return (
+      <div className="max-w-lg mx-auto space-y-8 text-center">
+        <div className="space-y-6">
+          <div className="w-24 h-24 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
+            <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+          </div>
+          
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-gray-900">Processing Withdrawal</h2>
+            <p className="text-muted-foreground">
+              {statusMessage}
+            </p>
+          </div>
+        </div>
+
+        <Card className="p-6 shadow-elevated">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span>Amount:</span>
+              <span className="font-bold text-lg">KSh {amount}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>To:</span>
+              <span className="font-medium">{phoneNumber}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>Status:</span>
+              <span className="text-blue-600 font-medium">Waiting for confirmation</span>
+            </div>
+          </div>
+        </Card>
+
+        <Alert>
+          <Smartphone className="h-4 w-4" />
+          <AlertDescription>
+            Please check your phone and enter your M-Pesa PIN to complete the withdrawal.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // Failed State - Show error with auto-reset
+  if (withdrawalStep === 'failed') {
+    return (
+      <div className="max-w-lg mx-auto space-y-8 text-center">
+        <div className="space-y-6">
+          <div className="w-24 h-24 mx-auto bg-red-100 rounded-full flex items-center justify-center">
+            <AlertCircle className="w-12 h-12 text-red-600" />
+          </div>
+          
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-red-600">Withdrawal Failed</h2>
+            <p className="text-muted-foreground">
+              {statusMessage}
+            </p>
+          </div>
+        </div>
+
+        <Card className="p-6 shadow-elevated border-red-200">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span>Amount:</span>
+              <span className="font-bold text-lg">KSh {amount}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>To:</span>
+              <span className="font-medium">{phoneNumber}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>Status:</span>
+              <span className="text-red-600 font-medium">Failed</span>
+            </div>
+          </div>
+        </Card>
+
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Returning to withdrawal form in a few seconds...
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // Success State
+  if (withdrawalStep === 'success') {
     return (
       <div className="max-w-lg mx-auto space-y-8 text-center">
         <div className="space-y-6">
@@ -267,11 +380,11 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
           {/* Withdraw Button */}
           <Button
             onClick={handleWithdraw}
-            disabled={isProcessing || !phoneNumber || !amount || totalEarnings < minWithdrawal}
+            disabled={withdrawalStep === 'processing' || !phoneNumber || !amount || totalEarnings < minWithdrawal}
             size="lg"
             className="w-full gradient-earning text-white hover:opacity-90 text-lg py-6"
           >
-            {isProcessing ? (
+            {withdrawalStep === 'processing' ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
                 Processing...

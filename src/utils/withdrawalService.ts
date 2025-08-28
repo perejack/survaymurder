@@ -109,14 +109,15 @@ export async function checkWithdrawalStatus(reference: string): Promise<Withdraw
   }
 }
 
-// Poll withdrawal status until completion
+// Enhanced real-time polling with faster intervals and better error handling
 export function pollWithdrawalStatus(
   reference: string,
   onStatusUpdate: (status: WithdrawalStatus) => void,
-  maxAttempts: number = 60,
-  intervalMs: number = 5000
+  maxAttempts: number = 50, // Poll for 25 seconds at 0.5s intervals
+  intervalMs: number = 500 // Check every 0.5 seconds for real-time feel
 ): () => void {
   let attempts = 0;
+  let timeoutId: NodeJS.Timeout;
   
   const poll = async () => {
     attempts++;
@@ -127,34 +128,59 @@ export function pollWithdrawalStatus(
       
       // Stop polling if withdrawal is complete or failed
       if (status.success && status.payment) {
-        if (status.payment.status === 'SUCCESS' || status.payment.status === 'FAILED') {
-          clearInterval(interval);
+        if (status.payment.status === 'SUCCESS') {
+          // Success - stop polling
+          return;
+        } else if (status.payment.status === 'FAILED') {
+          // Failed - stop polling
           return;
         }
       }
       
-      // Stop polling after max attempts
-      if (attempts >= maxAttempts) {
-        clearInterval(interval);
+      // Continue polling if still pending and within max attempts
+      if (attempts < maxAttempts) {
+        timeoutId = setTimeout(poll, intervalMs);
+      } else {
+        // Timeout reached
         onStatusUpdate({
           success: false,
-          message: 'Withdrawal status check timed out'
+          message: 'Request timed out. Please try again.',
+          payment: {
+            status: 'FAILED',
+            amount: 0,
+            phoneNumber: '',
+            resultDesc: 'Request timed out'
+          }
         });
       }
     } catch (error) {
       console.error('Polling error:', error);
-      if (attempts >= maxAttempts) {
-        clearInterval(interval);
+      
+      // Continue polling on network errors unless max attempts reached
+      if (attempts < maxAttempts) {
+        timeoutId = setTimeout(poll, intervalMs);
+      } else {
         onStatusUpdate({
           success: false,
-          message: 'Withdrawal status check failed'
+          message: 'Network error. Please check your connection and try again.',
+          payment: {
+            status: 'FAILED',
+            amount: 0,
+            phoneNumber: '',
+            resultDesc: 'Network error'
+          }
         });
       }
     }
   };
   
-  const interval = setInterval(poll, intervalMs);
+  // Start polling immediately
+  timeoutId = setTimeout(poll, 0);
   
   // Return cleanup function
-  return () => clearInterval(interval);
+  return () => {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  };
 }
