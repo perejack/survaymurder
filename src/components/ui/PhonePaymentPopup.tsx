@@ -43,7 +43,7 @@ export function PhonePaymentPopup({
       }
       
       // Initiate payment via Netlify function
-      const response = await fetch('https://survaypay75.netlify.app/.netlify/functions/initiate-payment', {
+      const response = await fetch('/.netlify/functions/initiate-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ export function PhonePaymentPopup({
     
     const checkStatus = async () => {
       try {
-        const response = await fetch(`https://survaypay75.netlify.app/.netlify/functions/payment-status/${requestId}`)
+        const response = await fetch(`/.netlify/functions/payment-status/${requestId}`)
         const data = await response.json()
         
         if (data.success && data.payment) {
