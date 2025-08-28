@@ -1,3 +1,10 @@
+const { createClient } = require('@supabase/supabase-js');
+
+// Supabase configuration
+const supabaseUrl = 'https://xrffhhvneuwhqxhrjbct.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhyZmZoaHZuZXV3aHF4aHJqYmN0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NjEyMTIwOSwiZXhwIjoyMDcxNjk3MjA5fQ.k1IlRXRKsK3ErmXBlb81356M6BvEKqP9e3c8KARW2_Y';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 // Netlify function to handle payment callback from PayHero
 exports.handler = async (event, context) => {
   // Process POST request only
@@ -15,10 +22,35 @@ exports.handler = async (event, context) => {
     // Log the callback for debugging
     console.log('Payment callback received:', JSON.stringify(callbackData, null, 2));
     
-    // In a production environment, you would:
-    // 1. Verify the payment status
-    // 2. Update user account status in your database
-    // 3. Log the transaction
+    // Extract payment info from PayHero callback
+    const response = callbackData.response || {};
+    const checkoutRequestId = response.CheckoutRequestID;
+    const externalReference = response.ExternalReference;
+    
+    if (checkoutRequestId) {
+      // Store payment status in Supabase
+      const paymentData = {
+        checkout_request_id: checkoutRequestId,
+        external_reference: externalReference,
+        status: response.Status === 'Success' ? 'SUCCESS' : 'FAILED',
+        amount: response.Amount,
+        phone_number: response.Phone,
+        mpesa_receipt_number: response.MpesaReceiptNumber,
+        result_desc: response.ResultDesc,
+        result_code: response.ResultCode
+      };
+      
+      // Insert or update payment in Supabase
+      const { data, error } = await supabase
+        .from('payments')
+        .upsert(paymentData, { onConflict: 'checkout_request_id' });
+      
+      if (error) {
+        console.error('Error storing payment:', error);
+      } else {
+        console.log(`Payment status stored in Supabase for ${checkoutRequestId}:`, paymentData);
+      }
+    }
     
     // Acknowledge receipt of callback
     return {
