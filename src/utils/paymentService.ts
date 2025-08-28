@@ -1,4 +1,4 @@
-// Payment service for STK Push integration
+// Working STK Push payment service from genesis verification project
 export interface PaymentResponse {
   success: boolean;
   message: string;
@@ -24,19 +24,13 @@ export interface PaymentStatus {
 
 // Format phone number for Kenyan format
 export function formatPhoneNumber(input: string): string {
-  // Remove non-digit characters
+  // Remove non-digit characters and spaces
   let cleaned = input.replace(/\D/g, '');
   
   // Format for Kenya number
   if (cleaned.startsWith('0')) {
     cleaned = '254' + cleaned.substring(1);
-  }
-  
-  if (cleaned.startsWith('+')) {
-    cleaned = cleaned.substring(1);
-  }
-  
-  if (!cleaned.startsWith('254')) {
+  } else if (!cleaned.startsWith('254')) {
     cleaned = '254' + cleaned;
   }
   
@@ -49,29 +43,22 @@ export function validatePhoneNumber(phoneNumber: string): boolean {
   return formatted.length === 12 && formatted.startsWith('254');
 }
 
-// Get API URL based on environment
-const getApiUrl = (): string => {
-  // Always use the working Netlify functions endpoint
-  return 'https://survaypay75.netlify.app/.netlify/functions';
-};
-
-// Initiate STK Push payment (can be used for both payments and withdrawals)
+// Initiate STK Push payment using working genesis functions
 export async function initiatePayment(
   phoneNumber: string,
   amount: number = 150,
-  description: string = 'EarnSpark Transaction'
+  description: string = 'Account Activation Fee'
 ): Promise<PaymentResponse> {
   try {
-    const formattedPhone = formatPhoneNumber(phoneNumber);
+    const cleanPhone = formatPhoneNumber(phoneNumber);
     
-    const response = await fetch(`${getApiUrl()}/initiate-payment`, {
+    const response = await fetch('/.netlify/functions/initiate-payment', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        phoneNumber: formattedPhone,
-        userId: 'user-' + Date.now(),
+        phoneNumber: cleanPhone,
         amount,
         description
       })
@@ -89,10 +76,10 @@ export async function initiatePayment(
   }
 }
 
-// Check payment status
+// Check payment status using working genesis functions
 export async function checkPaymentStatus(reference: string): Promise<PaymentStatus> {
   try {
-    const response = await fetch(`${getApiUrl()}/payment-status/${reference}`);
+    const response = await fetch(`/.netlify/functions/payment-status/${reference}`);
     const data = await response.json();
     return data;
   } catch (error) {
@@ -105,12 +92,12 @@ export async function checkPaymentStatus(reference: string): Promise<PaymentStat
   }
 }
 
-// Poll payment status until completion
+// Poll payment status with same logic as genesis verification
 export function pollPaymentStatus(
   reference: string,
   onStatusUpdate: (status: PaymentStatus) => void,
-  maxAttempts: number = 60,
-  intervalMs: number = 3000
+  maxAttempts: number = 50,
+  intervalMs: number = 500
 ): () => void {
   let attempts = 0;
   
@@ -124,33 +111,31 @@ export function pollPaymentStatus(
       // Stop polling if payment is complete or failed
       if (status.success && status.payment) {
         if (status.payment.status === 'SUCCESS' || status.payment.status === 'FAILED') {
-          clearInterval(interval);
+          clearTimeout(timeout);
           return;
         }
       }
       
-      // Stop polling after max attempts
-      if (attempts >= maxAttempts) {
-        clearInterval(interval);
+      // Continue polling if still pending
+      if (attempts < maxAttempts) {
+        timeout = setTimeout(poll, intervalMs);
+      } else {
         onStatusUpdate({
           success: false,
-          message: 'Payment status check timed out'
+          message: 'Payment timeout - please try again'
         });
       }
     } catch (error) {
       console.error('Polling error:', error);
-      if (attempts >= maxAttempts) {
-        clearInterval(interval);
-        onStatusUpdate({
-          success: false,
-          message: 'Payment status check failed'
-        });
-      }
+      onStatusUpdate({
+        success: false,
+        message: 'Payment verification failed'
+      });
     }
   };
   
-  const interval = setInterval(poll, intervalMs);
+  let timeout = setTimeout(poll, intervalMs);
   
   // Return cleanup function
-  return () => clearInterval(interval);
+  return () => clearTimeout(timeout);
 }

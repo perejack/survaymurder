@@ -1,11 +1,11 @@
 const { createClient } = require('@supabase/supabase-js');
 
-// Supabase configuration
+// Working Supabase configuration from genesis project
 const supabaseUrl = 'https://xrffhhvneuwhqxhrjbct.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhyZmZoaHZuZXV3aHF4aHJqYmN0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NjEyMTIwOSwiZXhwIjoyMDcxNjk3MjA5fQ.k1IlRXRKsK3ErmXBlb81356M6BvEKqP9e3c8KARW2_Y';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Netlify function to handle payment callback from PayHero
+// Working Netlify function to handle payment callback from PayHero - copied from genesis project
 exports.handler = async (event, context) => {
   // Process POST request only
   if (event.httpMethod !== 'POST') {

@@ -1,7 +1,7 @@
-// Netlify function to initiate payment
+// Working Netlify function to initiate payment - copied from genesis project
 const axios = require('axios');
 
-// PayHero API credentials
+// PayHero API credentials (working from genesis project)
 const API_USERNAME = 'LOV1coowH9xMzNtThWjF';
 const API_PASSWORD = 'hAxiS4X7B8KWDO2QjdPa2zdEMn0dFw4JST5n0eoW';
 const CHANNEL_ID = 3146;
@@ -40,7 +40,7 @@ exports.handler = async (event, context) => {
   
   try {
     const requestBody = JSON.parse(event.body);
-    const { phoneNumber, userId, amount = 200, description = 'SurvayPay Account Activation' } = requestBody;
+    const { phoneNumber, amount = 150, description = 'Account Activation Fee' } = requestBody;
     
     if (!phoneNumber) {
       return {
@@ -51,10 +51,10 @@ exports.handler = async (event, context) => {
     }
     
     // Generate a unique reference for this payment
-    const externalReference = `INV-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const externalReference = `ACT-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     
     // Define the callback URL - use Netlify function URL
-    const callbackUrl = `${process.env.URL || 'https://your-netlify-site.netlify.app'}/.netlify/functions/payment-callback`;
+    const callbackUrl = `${process.env.URL || 'https://survaypay75.netlify.app'}/.netlify/functions/payment-callback`;
     
     const payload = {
       amount: amount,

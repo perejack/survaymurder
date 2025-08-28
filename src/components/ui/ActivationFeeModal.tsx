@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { CreditCard, Smartphone, Shield, CheckCircle, ArrowRight, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { CreditCard, Smartphone, Shield, CheckCircle, ArrowRight, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -24,94 +24,88 @@ const ActivationFeeModal = ({
   const [isComplete, setIsComplete] = useState(false);
   const [paymentReference, setPaymentReference] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState('');
+  const [error, setError] = useState('');
   const { toast } = useToast();
 
   const handleActivate = async () => {
     if (!phoneNumber) {
-      toast({
-        title: "Phone Number Required",
-        description: "Please enter your M-Pesa phone number.",
-        variant: "destructive"
-      });
+      setError("Please enter your M-Pesa phone number.");
       return;
     }
 
     if (!validatePhoneNumber(phoneNumber)) {
-      toast({
-        title: "Invalid Phone Number",
-        description: "Please enter a valid Kenyan phone number.",
-        variant: "destructive"
-      });
+      setError("Please enter a valid Kenyan phone number.");
       return;
     }
 
     setIsProcessing(true);
-    setStatusMessage('Initiating payment...');
+    setStatusMessage('Processing payment...');
+    setError('');
 
     try {
-      // Initiate STK Push payment
-      const paymentResponse = await initiatePayment(phoneNumber, 150, 'EarnSpark Account Activation');
+      // Initiate STK Push payment using working genesis functions
+      const paymentResponse = await initiatePayment(phoneNumber, 150, 'Account Activation Fee');
       
-      if (paymentResponse.success && paymentResponse.data?.externalReference) {
-        setPaymentReference(paymentResponse.data.externalReference);
+      if (paymentResponse.success && paymentResponse.data) {
+        const requestId = paymentResponse.data.checkoutRequestId || paymentResponse.data.externalReference;
+        setPaymentReference(requestId);
         setStatusMessage('STK Push sent. Please complete payment on your phone.');
         
-        // Start polling for payment status
-        const stopPolling = pollPaymentStatus(
-          paymentResponse.data.externalReference,
-          (status: PaymentStatus) => {
-            if (status.success && status.payment) {
-              if (status.payment.status === 'SUCCESS') {
-                setIsProcessing(false);
-                setIsComplete(true);
-                setStatusMessage('Payment successful! Account activated.');
-                toast({
-                  title: "Payment Successful!",
-                  description: "Your account is now active. You can withdraw to M-Pesa.",
-                });
-              } else if (status.payment.status === 'FAILED') {
-                setIsProcessing(false);
-                setStatusMessage('Payment failed. Please try again.');
-                toast({
-                  title: "Payment Failed",
-                  description: status.payment.resultDesc || "Please try again.",
-                  variant: "destructive"
-                });
-              } else {
-                setStatusMessage('Waiting for payment confirmation...');
-              }
-            } else if (!status.success) {
-              setIsProcessing(false);
-              setStatusMessage('Payment status check failed.');
-              toast({
-                title: "Error",
-                description: status.message || "Failed to check payment status.",
-                variant: "destructive"
-              });
-            }
-          }
-        );
-        
-        // Cleanup polling on component unmount
-        return () => stopPolling();
+        // Start polling for payment status with same logic as genesis verification
+        pollPaymentStatusReal(requestId);
       } else {
-        setIsProcessing(false);
-        setStatusMessage('Failed to initiate payment.');
-        toast({
-          title: "Payment Failed",
-          description: paymentResponse.message || "Failed to initiate payment.",
-          variant: "destructive"
-        });
+        throw new Error(paymentResponse.message || 'Failed to initiate payment');
       }
     } catch (error) {
+      console.error('Payment error:', error);
+      setError(error.message || 'Failed to initiate payment');
       setIsProcessing(false);
-      setStatusMessage('Network error occurred.');
-      toast({
-        title: "Network Error",
-        description: "Please check your connection and try again.",
-        variant: "destructive"
-      });
+      setStatusMessage('');
     }
+  };
+
+  const pollPaymentStatusReal = async (requestId: string) => {
+    let attempts = 0;
+    const maxAttempts = 50; // Poll for up to 50 attempts (25 seconds at 0.5s intervals)
+    
+    const checkStatus = async () => {
+      try {
+        const response = await fetch(`/.netlify/functions/payment-status/${requestId}`);
+        const data = await response.json();
+        
+        if (data.success && data.payment) {
+          if (data.payment.status === 'SUCCESS') {
+            setIsProcessing(false);
+            setIsComplete(true);
+            setStatusMessage('Payment successful! Account activated.');
+            
+            // After 2 seconds, trigger success callback
+            setTimeout(() => {
+              onSuccess();
+              onOpenChange(false);
+            }, 2000);
+            return;
+          } else if (data.payment.status === 'FAILED') {
+            throw new Error(data.payment.resultDesc || 'Payment canceled by user');
+          }
+        }
+        
+        // Continue polling if still pending
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(checkStatus, 500); // Check every 0.5 seconds
+        } else {
+          throw new Error('Payment timeout - please try again');
+        }
+      } catch (error) {
+        console.error('Status check error:', error);
+        setError(error.message || 'Payment verification failed');
+        setIsProcessing(false);
+        setStatusMessage('');
+      }
+    };
+    
+    checkStatus();
   };
 
   if (isComplete) {
@@ -176,20 +170,12 @@ const ActivationFeeModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-[420px] p-0 overflow-hidden bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 border-0 shadow-2xl">
+      <DialogContent className="w-[95vw] max-w-[420px] p-0 overflow-hidden bg-white border-0 shadow-2xl">
         <div className="relative">
-          {/* Background decorative elements */}
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-orange-500/5 to-red-500/5" />
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-orange-400/10 to-transparent rounded-full blur-xl" />
-          <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-red-400/10 to-transparent rounded-full blur-xl" />
-          
           <div className="relative z-10 p-6">
-            {/* Header */}
+            {/* Header matching screenshot */}
             <div className="text-center mb-6">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                <CreditCard className="w-8 h-8 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              <h2 className="text-xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-2">
                 Account Activation Fee 💳
               </h2>
               <p className="text-gray-600 text-sm leading-relaxed">
@@ -197,10 +183,10 @@ const ActivationFeeModal = ({
               </p>
             </div>
 
-            {/* Fee breakdown */}
-            <Card className="gradient-card p-6 mb-6 border-0 shadow-lg">
+            {/* Fee breakdown card matching screenshot */}
+            <Card className="bg-gray-50 p-6 mb-6 border border-gray-200 rounded-xl">
               <div className="text-center mb-4">
-                <div className="text-4xl font-bold text-orange-600 mb-2">
+                <div className="text-4xl font-bold text-orange-500 mb-2">
                   KSh 150
                 </div>
                 <div className="text-sm text-gray-600">One-time activation fee</div>
@@ -219,28 +205,28 @@ const ActivationFeeModal = ({
                   <span className="text-gray-600">Security setup</span>
                   <span className="text-gray-800 font-medium">KSh 25</span>
                 </div>
-                <hr className="border-gray-200" />
+                <hr className="border-gray-300 my-3" />
                 <div className="flex items-center justify-between font-semibold">
                   <span>Total</span>
-                  <span className="text-orange-600">KSh 150</span>
+                  <span className="text-orange-500 text-lg">KSh 150</span>
                 </div>
               </div>
             </Card>
 
-            {/* Phone number input */}
+            {/* Phone number input matching screenshot */}
             <div className="mb-6">
-              <Label htmlFor="activation-phone" className="text-base font-semibold mb-3 block">
+              <Label htmlFor="activation-phone" className="text-base font-semibold mb-3 block text-gray-800">
                 M-Pesa Phone Number
               </Label>
               <div className="relative">
-                <Smartphone className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                <Smartphone className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
                 <Input
                   id="activation-phone"
                   type="tel"
                   placeholder="07XXXXXXXX or 01XXXXXXXX"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="pl-12 h-12 text-base border-2 border-gray-200 focus:border-orange-500 transition-colors"
+                  className="pl-12 h-12 text-base border-2 border-gray-200 focus:border-orange-500 transition-colors rounded-xl bg-gray-50"
                 />
               </div>
               <p className="text-xs text-gray-500 mt-2">
@@ -248,9 +234,16 @@ const ActivationFeeModal = ({
               </p>
             </div>
 
-            {/* Security features */}
+            {/* Error message */}
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm">{error}</p>
+              </div>
+            )}
+
+            {/* Security features matching screenshot */}
             <div className="grid grid-cols-2 gap-3 mb-6">
-              <Card className="gradient-card p-3 border-0 shadow-sm">
+              <Card className="bg-gray-50 p-3 border border-gray-200 rounded-xl">
                 <div className="text-center">
                   <Shield className="w-6 h-6 mx-auto mb-1 text-blue-600" />
                   <p className="text-xs font-medium text-gray-800">Secure</p>
@@ -258,7 +251,7 @@ const ActivationFeeModal = ({
                 </div>
               </Card>
               
-              <Card className="gradient-card p-3 border-0 shadow-sm">
+              <Card className="bg-gray-50 p-3 border border-gray-200 rounded-xl">
                 <div className="text-center">
                   <CheckCircle className="w-6 h-6 mx-auto mb-1 text-green-600" />
                   <p className="text-xs font-medium text-gray-800">Verified</p>
@@ -267,13 +260,13 @@ const ActivationFeeModal = ({
               </Card>
             </div>
 
-            {/* Action buttons */}
+            {/* Action button matching screenshot */}
             <div className="space-y-3">
               <Button
                 onClick={handleActivate}
                 disabled={isProcessing || !phoneNumber}
                 size="lg"
-                className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold py-6 text-lg hover-bounce"
+                className="w-full bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-semibold py-4 text-base rounded-xl shadow-lg"
               >
                 {isProcessing ? (
                   <>
@@ -293,18 +286,11 @@ const ActivationFeeModal = ({
                 onClick={() => onOpenChange(false)}
                 variant="outline"
                 size="lg"
-                className="w-full"
+                className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl"
                 disabled={isProcessing}
               >
                 Cancel
               </Button>
-            </div>
-
-            {/* Terms */}
-            <div className="text-center mt-4">
-              <p className="text-xs text-gray-500">
-                By activating, you agree to our Terms of Service • Secure M-Pesa payment
-              </p>
             </div>
           </div>
         </div>
