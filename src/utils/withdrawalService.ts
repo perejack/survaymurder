@@ -49,14 +49,10 @@ export function validatePhoneNumber(phoneNumber: string): boolean {
   return formatted.length === 12 && formatted.startsWith('254');
 }
 
-// Get API URL based on environment
+// Get API URL based on environment - always use working endpoint
 const getApiUrl = (): string => {
-  if (typeof window !== 'undefined') {
-    return window.location.hostname === 'localhost' 
-      ? 'http://localhost:8888/.netlify/functions'
-      : 'https://survaypay75.netlify.app/.netlify/functions'; // Use working functions endpoint
-  }
-  return '/.netlify/functions';
+  // Always use the working survaypay75 endpoint for both initiate and status
+  return 'https://survaypay75.netlify.app/.netlify/functions';
 };
 
 // Initiate withdrawal using STK Push
@@ -162,12 +158,12 @@ export function pollWithdrawalStatus(
       } else {
         onStatusUpdate({
           success: false,
-          message: 'Network error. Please check your connection and try again.',
+          message: 'Unable to verify payment status. Please check your M-Pesa messages.',
           payment: {
             status: 'FAILED',
             amount: 0,
             phoneNumber: '',
-            resultDesc: 'Network error'
+            resultDesc: 'Status check failed - please verify M-Pesa transaction'
           }
         });
       }
