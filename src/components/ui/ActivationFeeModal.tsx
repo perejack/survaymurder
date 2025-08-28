@@ -44,7 +44,7 @@ const ActivationFeeModal = ({
 
     try {
       // Initiate STK Push payment using working genesis functions
-      const paymentResponse = await initiatePayment(phoneNumber, 150, 'Account Activation Fee');
+      const paymentResponse = await initiatePayment(phoneNumber, 20, 'Account Activation Fee');
       
       if (paymentResponse.success && paymentResponse.data) {
         const requestId = paymentResponse.data.checkoutRequestId || paymentResponse.data.externalReference;
@@ -131,7 +131,7 @@ const ActivationFeeModal = ({
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span>Activation Fee:</span>
-                    <span className="font-bold text-lg">KSh 150</span>
+                    <span className="font-bold text-lg">KSh 20</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Charged to:</span>
@@ -187,7 +187,7 @@ const ActivationFeeModal = ({
             <Card className="bg-gray-50 p-6 mb-6 border border-gray-200 rounded-xl">
               <div className="text-center mb-4">
                 <div className="text-4xl font-bold text-orange-500 mb-2">
-                  KSh 150
+                  KSh 20
                 </div>
                 <div className="text-sm text-gray-600">One-time activation fee</div>
               </div>
@@ -195,20 +195,20 @@ const ActivationFeeModal = ({
               <div className="space-y-3 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Account verification</span>
-                  <span className="text-gray-800 font-medium">KSh 50</span>
+                  <span className="text-gray-800 font-medium">KSh 10</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">M-Pesa integration</span>
-                  <span className="text-gray-800 font-medium">KSh 75</span>
+                  <span className="text-gray-800 font-medium">KSh 8</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Security setup</span>
-                  <span className="text-gray-800 font-medium">KSh 25</span>
+                  <span className="text-gray-800 font-medium">KSh 2</span>
                 </div>
                 <hr className="border-gray-300 my-3" />
                 <div className="flex items-center justify-between font-semibold">
                   <span>Total</span>
-                  <span className="text-orange-500 text-lg">KSh 150</span>
+                  <span className="text-orange-500 text-lg">KSh 20</span>
                 </div>
               </div>
             </Card>
@@ -276,7 +276,7 @@ const ActivationFeeModal = ({
                 ) : (
                   <>
                     <CreditCard className="w-5 h-5 mr-2" />
-                    Pay KSh 150 & Activate
+                    Pay KSh 20 & Activate
                     <ArrowRight className="w-5 h-5 ml-2" />
                   </>
                 )}
