@@ -322,7 +322,7 @@ const PremiumTaskPackagesModal = ({
                       </div>
                       
                       {/* Daily Limit Badge */}
-                      <div className="flex justify-center">
+                      <div className="flex justify-center mb-4">
                         <Badge className={`bg-gradient-to-r ${pkg.color} text-white border-0 px-3 sm:px-4 py-1 text-xs sm:text-sm`}>
                           {pkg.dailyLimit === 'unlimited' ? (
                             <div className="flex items-center gap-1">
@@ -334,26 +334,27 @@ const PremiumTaskPackagesModal = ({
                           )}
                         </Badge>
                       </div>
+
+                      {/* Purchase Button */}
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedPackage(key as 'basic' | 'pro');
+                          setShowPaymentForm(true);
+                        }}
+                        className={`w-full bg-gradient-to-r ${pkg.color} hover:opacity-90 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm`}
+                      >
+                        <div className="flex items-center justify-center gap-2">
+                          <CreditCard className="w-4 h-4 flex-shrink-0" />
+                          <span>Unlock Tasks - KSH {pkg.price}</span>
+                        </div>
+                      </Button>
                     </div>
                   </Card>
                 );
               })}
             </div>
 
-            {/* Purchase Button */}
-            {selectedPackage && (
-              <div className="text-center">
-                <Button
-                  onClick={() => setShowPaymentForm(true)}
-                  className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-3 sm:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                    <span>Purchase {packages[selectedPackage].name} - KSH {packages[selectedPackage].price}</span>
-                  </div>
-                </Button>
-              </div>
-            )}
 
             {/* Footer */}
             <div className="text-center mt-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-200">
