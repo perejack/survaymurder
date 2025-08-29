@@ -23,9 +23,19 @@ interface WithdrawalInterfaceProps {
   totalEarnings: number;
   onBack: () => void;
   onStartEarning?: () => void;
+  completedTasks?: number;
+  isAccountActive?: boolean;
+  onAccountActivation?: () => void;
 }
 
-const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: WithdrawalInterfaceProps) => {
+const WithdrawalInterface = ({ 
+  totalEarnings, 
+  onBack, 
+  onStartEarning, 
+  completedTasks: propCompletedTasks = 0, 
+  isAccountActive: propIsAccountActive = false, 
+  onAccountActivation 
+}: WithdrawalInterfaceProps) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [amount, setAmount] = useState('');
   const [withdrawalMethod, setWithdrawalMethod] = useState('mpesa');
@@ -41,9 +51,9 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
   const [showDailyTaskLimitModal, setShowDailyTaskLimitModal] = useState(false);
   const [showTaskPackagesModal, setShowTaskPackagesModal] = useState(false);
   const [showWithdrawalSuccessModal, setShowWithdrawalSuccessModal] = useState(false);
-  const [isAccountActive, setIsAccountActive] = useState(false);
+  const [isAccountActive, setIsAccountActive] = useState(propIsAccountActive);
   const [isPlatinumUser, setIsPlatinumUser] = useState(false);
-  const [completedTasks, setCompletedTasks] = useState(0);
+  const [completedTasks, setCompletedTasks] = useState(propCompletedTasks);
   
   // Track survey completion and show task limit modal after 2nd survey (on 3rd attempt)
   const handleSurveyCompletion = () => {
@@ -589,8 +599,8 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
         open={showDailyTaskLimitModal}
         onOpenChange={setShowDailyTaskLimitModal}
         completedTasks={completedTasks}
-        totalTasks={dailyTaskLimit}
-        onUnlockMoreTasks={() => {
+        dailyLimit={dailyTaskLimit}
+        onUnlockTasks={() => {
           setShowDailyTaskLimitModal(false);
           setShowTaskPackagesModal(true);
         }}

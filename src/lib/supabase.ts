@@ -21,6 +21,10 @@ export type Database = {
           email: string
           full_name: string | null
           avatar_url: string | null
+          account_activated: boolean
+          is_platinum: boolean
+          activation_date: string | null
+          platinum_upgrade_date: string | null
           created_at: string
           updated_at: string
         }
@@ -30,6 +34,10 @@ export type Database = {
           email: string
           full_name?: string | null
           avatar_url?: string | null
+          account_activated?: boolean
+          is_platinum?: boolean
+          activation_date?: string | null
+          platinum_upgrade_date?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -39,6 +47,10 @@ export type Database = {
           email?: string
           full_name?: string | null
           avatar_url?: string | null
+          account_activated?: boolean
+          is_platinum?: boolean
+          activation_date?: string | null
+          platinum_upgrade_date?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -94,6 +106,75 @@ export type Database = {
           completed_at?: string
           reward_earned?: number
         }
+      }
+      daily_survey_completions: {
+        Row: {
+          id: string
+          user_id: string
+          completion_date: string
+          surveys_completed: number
+          daily_limit: number
+          task_packages_purchased: number
+          additional_surveys_unlocked: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          completion_date?: string
+          surveys_completed?: number
+          daily_limit?: number
+          task_packages_purchased?: number
+          additional_surveys_unlocked?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          completion_date?: string
+          surveys_completed?: number
+          daily_limit?: number
+          task_packages_purchased?: number
+          additional_surveys_unlocked?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
+    }
+    Functions: {
+      get_daily_survey_status: {
+        Args: { user_uuid: string }
+        Returns: {
+          surveys_completed: number
+          daily_limit: number
+          can_complete_survey: boolean
+          is_account_activated: boolean
+          is_platinum_user: boolean
+        }[]
+      }
+      complete_survey: {
+        Args: { user_uuid: string; survey_category?: string }
+        Returns: {
+          success: boolean
+          surveys_completed: number
+          daily_limit: number
+          show_task_limit_modal: boolean
+          message: string
+        }[]
+      }
+      activate_user_account: {
+        Args: { user_uuid: string }
+        Returns: boolean
+      }
+      upgrade_to_platinum: {
+        Args: { user_uuid: string }
+        Returns: boolean
+      }
+      purchase_task_package: {
+        Args: { user_uuid: string; package_type: string }
+        Returns: boolean
       }
     }
   }

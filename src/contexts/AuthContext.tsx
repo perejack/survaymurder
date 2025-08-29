@@ -18,6 +18,12 @@ interface AuthContextType {
   signOut: () => Promise<void>
   updateProfile: (updates: Partial<UserProfile>) => Promise<{ error: Error | null }>
   addEarning: (amount: number, type?: 'bonus' | 'survey' | 'withdrawal' | 'adjustment', description?: string) => Promise<{ error: any }>
+  // Survey completion tracking
+  getSurveyStatus: () => Promise<{ surveys_completed: number; daily_limit: number; can_complete_survey: boolean; is_account_activated: boolean; is_platinum_user: boolean }>
+  completeSurvey: (category?: string) => Promise<{ success: boolean; surveys_completed: number; daily_limit: number; show_task_limit_modal: boolean; message: string }>
+  activateAccount: () => Promise<boolean>
+  upgradeToPlatinum: () => Promise<boolean>
+  purchaseTaskPackage: (packageType: string) => Promise<boolean>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -251,6 +257,107 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error }
   }
 
+  // Database-backed survey completion functions
+  const getSurveyStatus = async () => {
+    if (!user) throw new Error('No user logged in')
+    
+    const { data, error } = await supabase.rpc('get_daily_survey_status', {
+      user_uuid: user.id
+    })
+    
+    if (error) {
+      console.error('Error getting survey status:', error)
+      throw error
+    }
+    
+    return data[0] || {
+      surveys_completed: 0,
+      daily_limit: 2,
+      can_complete_survey: true,
+      is_account_activated: false,
+      is_platinum_user: false
+    }
+  }
+
+  const completeSurvey = async (category = 'general') => {
+    if (!user) throw new Error('No user logged in')
+    
+    const { data, error } = await supabase.rpc('complete_survey', {
+      user_uuid: user.id,
+      survey_category: category
+    })
+    
+    if (error) {
+      console.error('Error completing survey:', error)
+      throw error
+    }
+    
+    // Refresh balance after survey completion
+    if (data[0]?.success) {
+      await fetchBalance()
+    }
+    
+    return data[0] || {
+      success: false,
+      surveys_completed: 0,
+      daily_limit: 2,
+      show_task_limit_modal: false,
+      message: 'Error completing survey'
+    }
+  }
+
+  const activateAccount = async () => {
+    if (!user) throw new Error('No user logged in')
+    
+    const { data, error } = await supabase.rpc('activate_user_account', {
+      user_uuid: user.id
+    })
+    
+    if (error) {
+      console.error('Error activating account:', error)
+      throw error
+    }
+    
+    // Refresh profile to get updated activation status
+    await fetchProfile(user.id)
+    
+    return data || false
+  }
+
+  const upgradeToPlatinum = async () => {
+    if (!user) throw new Error('No user logged in')
+    
+    const { data, error } = await supabase.rpc('upgrade_to_platinum', {
+      user_uuid: user.id
+    })
+    
+    if (error) {
+      console.error('Error upgrading to platinum:', error)
+      throw error
+    }
+    
+    // Refresh profile to get updated platinum status
+    await fetchProfile(user.id)
+    
+    return data || false
+  }
+
+  const purchaseTaskPackage = async (packageType: string) => {
+    if (!user) throw new Error('No user logged in')
+    
+    const { data, error } = await supabase.rpc('purchase_task_package', {
+      user_uuid: user.id,
+      package_type: packageType
+    })
+    
+    if (error) {
+      console.error('Error purchasing task package:', error)
+      throw error
+    }
+    
+    return data || false
+  }
+
   const value = {
     user,
     profile,
@@ -264,6 +371,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut,
     updateProfile,
     addEarning,
+    getSurveyStatus,
+    completeSurvey,
+    activateAccount,
+    upgradeToPlatinum,
+    purchaseTaskPackage,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

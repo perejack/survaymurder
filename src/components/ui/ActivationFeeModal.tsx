@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { initiatePayment, pollPaymentStatus, validatePhoneNumber, PaymentStatus } from '@/utils/paymentService';
 
 interface ActivationFeeModalProps {
@@ -26,6 +27,7 @@ const ActivationFeeModal = ({
   const [statusMessage, setStatusMessage] = useState('');
   const [error, setError] = useState('');
   const { toast } = useToast();
+  const { activateAccount } = useAuth();
 
   const handleActivate = async () => {
     if (!phoneNumber) {
@@ -80,9 +82,21 @@ const ActivationFeeModal = ({
             setStatusMessage('Payment successful! Account activated.');
             
             // After 2 seconds, trigger success callback
-            setTimeout(() => {
-              onSuccess();
-              onOpenChange(false);
+            setTimeout(async () => {
+              try {
+                // Call the database activation function
+                await activateAccount();
+                
+                // Call the activation callback
+                onSuccess();
+              } catch (error) {
+                console.error('Error activating account:', error);
+              }
+              
+              // Close modal after a short delay
+              setTimeout(() => {
+                onOpenChange(false);
+              }, 2000);
             }, 2000);
             return;
           } else if (data.payment.status === 'FAILED') {

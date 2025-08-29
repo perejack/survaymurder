@@ -8,17 +8,17 @@ import { Clock, CheckCircle, Package, Sparkles, ArrowRight, Trophy, Zap } from "
 interface ModernDailyTaskLimitModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUnlockMoreTasks: () => void;
+  onUnlockTasks: () => void;
   completedTasks: number;
-  totalTasks: number;
+  dailyLimit: number;
 }
 
 const ModernDailyTaskLimitModal = ({ 
   open, 
   onOpenChange, 
-  onUnlockMoreTasks,
+  onUnlockTasks,
   completedTasks,
-  totalTasks
+  dailyLimit
 }: ModernDailyTaskLimitModalProps) => {
   const [timeLeft, setTimeLeft] = useState({
     hours: 11,
@@ -132,8 +132,8 @@ const ModernDailyTaskLimitModal = ({
                 </div>
                 
                 <h3 className="font-bold text-orange-800 mb-2">Want More Tasks?</h3>
-                <p className="text-sm text-orange-700 mb-4">
-                  Don't wait! Unlock premium task packages and keep earning
+                <p className="text-sm text-muted-foreground mb-6">
+                  You've completed {completedTasks}/{dailyLimit} daily surveys. Come back tomorrow for more earning opportunities or unlock additional tasks now!
                 </p>
                 
                 <div className="grid grid-cols-2 gap-3 mb-4">
@@ -156,7 +156,7 @@ const ModernDailyTaskLimitModal = ({
             {/* Action Buttons */}
             <div className="space-y-3">
               <Button
-                onClick={onUnlockMoreTasks}
+                onClick={onUnlockTasks}
                 size="lg"
                 className="w-full bg-gradient-to-r from-orange-500 to-yellow-600 hover:from-orange-600 hover:to-yellow-700 text-white font-semibold py-4 text-base shadow-lg hover:shadow-xl transition-all duration-300 animate-pulse"
               >

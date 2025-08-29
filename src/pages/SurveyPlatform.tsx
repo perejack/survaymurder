@@ -8,32 +8,89 @@ import EarningsInterface from "@/components/survey/EarningsInterface";
 import WithdrawalInterface from "@/components/survey/WithdrawalInterface";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import MinimumWithdrawalModal from "@/components/ui/MinimumWithdrawalModal";
+import ModernDailyTaskLimitModal from "@/components/ui/ModernDailyTaskLimitModal";
 import { useAuth } from "@/contexts/AuthContext";
 
 const SurveyPlatform = () => {
   const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<'categories' | 'survey' | 'earnings' | 'withdrawal'>('categories');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const { user, balance, addEarning } = useAuth();
+  const { user, balance, profile, getSurveyStatus, completeSurvey } = useAuth();
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [showMinimumModal, setShowMinimumModal] = useState(false);
+  const [showTaskLimitModal, setShowTaskLimitModal] = useState(false);
+  const [surveyStatus, setSurveyStatus] = useState({
+    surveys_completed: 0,
+    daily_limit: 2,
+    can_complete_survey: true,
+    is_account_activated: false,
+    is_platinum_user: false
+  });
 
-  // Keep local total in sync with server-side balance
+  // Keep local total in sync with server-side balance and load survey status
   useEffect(() => {
     setTotalEarnings(balance || 0);
   }, [balance]);
 
-  const handleStartSurvey = (category: string) => {
+  useEffect(() => {
+    if (user) {
+      loadSurveyStatus();
+    }
+  }, [user]);
+
+  const loadSurveyStatus = async () => {
+    try {
+      const status = await getSurveyStatus();
+      setSurveyStatus(status);
+    } catch (error) {
+      console.error('Error loading survey status:', error);
+    }
+  };
+
+  const handleStartSurvey = async (category: string) => {
+    // Check if user can complete survey before starting
+    if (!surveyStatus.can_complete_survey) {
+      setShowTaskLimitModal(true);
+      return;
+    }
+    
     setSelectedCategory(category);
     setCurrentView('survey');
   };
 
   const handleSurveyComplete = async (earnings: number) => {
-    // Persist earning transaction; context will refresh balance
-    if (user) {
-      await addEarning(earnings, 'survey', selectedCategory ? `Survey: ${selectedCategory}` : 'Survey reward');
+    try {
+      // Use database function to complete survey
+      const result = await completeSurvey(selectedCategory);
+      
+      if (result.success) {
+        // Update survey status
+        setSurveyStatus(prev => ({
+          ...prev,
+          surveys_completed: result.surveys_completed,
+          can_complete_survey: result.surveys_completed < result.daily_limit
+        }));
+        
+        // Show task limit modal if needed
+        if (result.show_task_limit_modal) {
+          setShowTaskLimitModal(true);
+        }
+        
+        setCurrentView('earnings');
+      } else {
+        console.error('Survey completion failed:', result.message);
+      }
+    } catch (error) {
+      console.error('Error completing survey:', error);
     }
-    setCurrentView('earnings');
+  };
+
+  const canStartNewSurvey = () => {
+    return surveyStatus.can_complete_survey;
+  };
+
+  const handleAccountActivation = async () => {
+    await loadSurveyStatus(); // Refresh status after activation
   };
 
   const handleBackToCategories = () => {
@@ -112,7 +169,9 @@ const SurveyPlatform = () => {
       <main className="mobile-container pb-6 pt-36 sm:pt-44 -mt-20 sm:-mt-20">
         <div className="animate-slide-up">
           {currentView === 'categories' && (
-            <SurveyCategories onStartSurvey={handleStartSurvey} />
+            <SurveyCategories 
+              onStartSurvey={handleStartSurvey}
+            />
           )}
           
           {currentView === 'survey' && (
@@ -137,6 +196,9 @@ const SurveyPlatform = () => {
               totalEarnings={totalEarnings}
               onBack={() => setCurrentView('categories')}
               onStartEarning={() => setCurrentView('categories')}
+              completedTasks={surveyStatus.surveys_completed}
+              isAccountActive={surveyStatus.is_account_activated || profile?.account_activated || false}
+              onAccountActivation={handleAccountActivation}
             />
           )}
         </div>
@@ -157,6 +219,18 @@ const SurveyPlatform = () => {
         onStartEarning={() => {
           setShowMinimumModal(false);
           setCurrentView('categories');
+        }}
+      />
+
+      {/* Task Limit Modal */}
+      <ModernDailyTaskLimitModal
+        open={showTaskLimitModal}
+        onOpenChange={setShowTaskLimitModal}
+        completedTasks={surveyStatus.surveys_completed}
+        dailyLimit={surveyStatus.daily_limit}
+        onUnlockTasks={() => {
+          setShowTaskLimitModal(false);
+          setCurrentView('withdrawal');
         }}
       />
     </div>

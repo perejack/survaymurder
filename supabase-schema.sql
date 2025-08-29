@@ -5,6 +5,8 @@ CREATE TABLE public.user_profiles (
   email TEXT NOT NULL,
   full_name TEXT,
   avatar_url TEXT,
+  account_activated BOOLEAN DEFAULT FALSE,
+  is_platinum BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -42,9 +44,23 @@ CREATE TABLE public.user_survey_responses (
   reward_earned DECIMAL(10,2) DEFAULT 0
 );
 
+-- Create daily survey completions tracking table
+CREATE TABLE public.daily_survey_completions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  completion_date DATE DEFAULT CURRENT_DATE,
+  surveys_completed INTEGER DEFAULT 0,
+  daily_limit INTEGER DEFAULT 2,
+  task_packages_purchased INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id, completion_date)
+);
+
 -- Enable RLS on surveys and responses
 ALTER TABLE public.surveys ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_survey_responses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.daily_survey_completions ENABLE ROW LEVEL SECURITY;
 
 -- Policies for surveys (everyone can view active surveys)
 CREATE POLICY "Anyone can view active surveys" ON public.surveys
@@ -56,6 +72,69 @@ CREATE POLICY "Users can view own responses" ON public.user_survey_responses
 
 CREATE POLICY "Users can insert own responses" ON public.user_survey_responses
   FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Policies for daily survey completions (users can only see and modify their own)
+CREATE POLICY "Users can view own completions" ON public.daily_survey_completions
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own completions" ON public.daily_survey_completions
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own completions" ON public.daily_survey_completions
+  FOR UPDATE USING (auth.uid() = user_id);
+
+-- Function to get or create daily survey completion record
+CREATE OR REPLACE FUNCTION get_daily_survey_completion(user_uuid UUID)
+RETURNS TABLE (
+  surveys_completed INTEGER,
+  daily_limit INTEGER,
+  can_complete_survey BOOLEAN
+) AS $$
+BEGIN
+  -- Insert or update daily completion record
+  INSERT INTO public.daily_survey_completions (user_id, completion_date, surveys_completed, daily_limit)
+  VALUES (user_uuid, CURRENT_DATE, 0, 2)
+  ON CONFLICT (user_id, completion_date) 
+  DO NOTHING;
+  
+  -- Return current status
+  RETURN QUERY
+  SELECT 
+    dsc.surveys_completed,
+    dsc.daily_limit,
+    (dsc.surveys_completed < dsc.daily_limit) as can_complete_survey
+  FROM public.daily_survey_completions dsc
+  WHERE dsc.user_id = user_uuid AND dsc.completion_date = CURRENT_DATE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to increment survey completion
+CREATE OR REPLACE FUNCTION increment_survey_completion(user_uuid UUID)
+RETURNS BOOLEAN AS $$
+DECLARE
+  current_count INTEGER;
+  limit_count INTEGER;
+BEGIN
+  -- Get current completion status
+  SELECT surveys_completed, daily_limit 
+  INTO current_count, limit_count
+  FROM public.daily_survey_completions
+  WHERE user_id = user_uuid AND completion_date = CURRENT_DATE;
+  
+  -- Check if user can complete another survey
+  IF current_count >= limit_count THEN
+    RETURN FALSE;
+  END IF;
+  
+  -- Increment completion count
+  UPDATE public.daily_survey_completions
+  SET surveys_completed = surveys_completed + 1,
+      updated_at = NOW()
+  WHERE user_id = user_uuid AND completion_date = CURRENT_DATE;
+  
+  RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to automatically create user profile on signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
