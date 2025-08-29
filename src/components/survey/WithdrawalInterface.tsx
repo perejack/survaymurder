@@ -26,6 +26,8 @@ interface WithdrawalInterfaceProps {
   completedTasks?: number;
   isAccountActive?: boolean;
   onAccountActivation?: () => void;
+  userId?: string;
+  onSetFlowStage?: (stage: 'pre_withdrawal' | 'post_warning' | 'limited') => void;
 }
 
 const WithdrawalInterface = ({ 
@@ -34,7 +36,8 @@ const WithdrawalInterface = ({
   onStartEarning, 
   completedTasks: propCompletedTasks = 0, 
   isAccountActive: propIsAccountActive = false, 
-  onAccountActivation 
+  onAccountActivation,
+  onSetFlowStage = () => {}
 }: WithdrawalInterfaceProps) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [amount, setAmount] = useState('');
@@ -550,12 +553,9 @@ const WithdrawalInterface = ({
         onContinueTasking={() => {
           setShowAccountOptionsModal(false);
           // Check if user can still do surveys (less than 2 completed)
-          if (completedTasks < 2) {
-            onStartEarning?.(); // Let them do surveys
-          } else {
-            // Already completed 2 surveys, show task limit modal
-            setShowDailyTaskLimitModal(true);
-          }
+          // Mark the app stage that user accepted the 30% rule and chose to continue
+          onSetFlowStage?.('post_warning');
+          onStartEarning?.();
         }}
         onUpgradeToPlatinum={() => {
           setShowAccountOptionsModal(false);
