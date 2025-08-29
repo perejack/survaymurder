@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CreditCard, X } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
 import { initiatePayment, pollPaymentStatus, validatePhoneNumber } from '../../utils/paymentService';
 
 interface PaymentFormModalProps {
@@ -29,8 +27,6 @@ const PaymentFormModal = ({
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
-  const { purchaseTaskPackage } = useAuth();
-  const navigate = useNavigate();
 
   const handlePayment = async () => {
     if (!validatePhoneNumber(phoneNumber)) {
@@ -60,40 +56,22 @@ const PaymentFormModal = ({
         // Start real payment status polling
         const cleanup = pollPaymentStatus(
           paymentResult.data.checkoutRequestId,
-          async (status) => {
+          (status) => {
             if (status.success && status.payment) {
               if (status.payment.status === 'SUCCESS') {
                 setIsProcessing(false);
+                onPaymentSuccess();
                 
-                try {
-                  // Purchase task package in backend
-                  await purchaseTaskPackage(packageType);
-                  
-                  // Call parent success handler
-                  onPaymentSuccess();
-                  
-                  toast({
-                    title: "Payment Successful! 🎉",
-                    description: `${packageName} activated! Redirecting to surveys...`,
-                  });
-                  
-                  // Close modal and navigate to survey questions
+                toast({
+                  title: "Payment Successful! 🎉",
+                  description: `${packageName} activated! You can now complete more tasks.`,
+                });
+                
+                // Auto-close after 2 seconds
+                setTimeout(() => {
                   onOpenChange(false);
                   setPhoneNumber(''); // Reset form
-                  
-                  // Navigate directly to survey platform after short delay
-                  setTimeout(() => {
-                    navigate('/survey');
-                  }, 1000);
-                  
-                } catch (error) {
-                  console.error('Error activating package:', error);
-                  toast({
-                    title: "Package Activation Error",
-                    description: "Payment successful but package activation failed. Please contact support.",
-                    variant: "destructive",
-                  });
-                }
+                }, 2000);
               } else if (status.payment.status === 'FAILED') {
                 setIsProcessing(false);
                 toast({
