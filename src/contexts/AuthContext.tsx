@@ -270,6 +270,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw error
     }
     
+    console.log('Survey status from database:', data)
     return data[0] || {
       surveys_completed: 0,
       daily_limit: 2,
@@ -345,6 +346,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const purchaseTaskPackage = async (packageType: 'basic' | 'pro') => {
     if (!user) throw new Error('No user logged in')
     
+    console.log('Calling purchase_task_package with:', { user_id: user.id, package_type: packageType })
+    
     const { data, error } = await supabase.rpc('purchase_task_package', {
       user_uuid: user.id,
       package_type: packageType
@@ -354,6 +357,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Error purchasing task package:', error)
       throw error
     }
+    
+    console.log('Purchase task package result:', data)
     
     // Refresh profile after purchase
     await fetchProfile(user.id)

@@ -65,7 +65,9 @@ export default function PaymentFormModal({
                 
                 // Grant additional tasks in database
                 try {
-                  await purchaseTaskPackage(packageType);
+                  console.log('About to call purchaseTaskPackage with:', packageType);
+                  const result = await purchaseTaskPackage(packageType);
+                  console.log('purchaseTaskPackage completed with result:', result);
                   
                   toast({
                     title: "Payment Successful! 🎉",
@@ -76,16 +78,18 @@ export default function PaymentFormModal({
                   // Trigger survey status refresh in parent component
                   onPaymentSuccess();
                   
-                  // Auto-close after 2 seconds
+                  // Auto-close and redirect to premium survey
                   setTimeout(() => {
                     onOpenChange(false);
                     setPhoneNumber(''); // Reset form
+                    // Redirect to premium survey page
+                    window.location.href = '/premium-survey';
                   }, 2000);
                 } catch (error) {
                   console.error('Error activating package:', error);
                   toast({
                     title: "Package Activation Error",
-                    description: "Payment successful but failed to activate package. Please contact support.",
+                    description: `Payment successful but failed to activate package. Error: ${error.message}`,
                     variant: "destructive",
                   });
                 }
