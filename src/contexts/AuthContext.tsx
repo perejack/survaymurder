@@ -336,13 +336,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw error
     }
     
-    // Refresh profile to get updated platinum status
+    // Refresh profile after upgrade
     await fetchProfile(user.id)
     
-    return data || false
+    return data
   }
 
-  const purchaseTaskPackage = async (packageType: string) => {
+  const purchaseTaskPackage = async (packageType: 'basic' | 'pro') => {
     if (!user) throw new Error('No user logged in')
     
     const { data, error } = await supabase.rpc('purchase_task_package', {
@@ -355,7 +355,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw error
     }
     
-    return data || false
+    // Refresh profile after purchase
+    await fetchProfile(user.id)
+    
+    return data
   }
 
   const value = {

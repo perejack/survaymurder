@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { CreditCard, X } from "lucide-react";
-import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './dialog';
+import { Button } from './button';
+import { Input } from './input';
+import { Label } from './label';
+import { Loader2, CreditCard } from 'lucide-react';
+import { useToast } from '../../hooks/use-toast';
+import { useAuth } from '../../contexts/AuthContext';
 import { initiatePayment, pollPaymentStatus, validatePhoneNumber } from '../../utils/paymentService';
 
 interface PaymentFormModalProps {
@@ -16,17 +17,18 @@ interface PaymentFormModalProps {
   onPaymentSuccess: () => void;
 }
 
-const PaymentFormModal = ({ 
+export default function PaymentFormModal({ 
   open, 
   onOpenChange, 
   packageType,
   packageName,
   packagePrice,
   onPaymentSuccess
-}: PaymentFormModalProps) => {
+}: PaymentFormModalProps) {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
+  const { purchaseTaskPackage } = useAuth();
 
   const handlePayment = async () => {
     if (!validatePhoneNumber(phoneNumber)) {
@@ -56,22 +58,36 @@ const PaymentFormModal = ({
         // Start real payment status polling
         const cleanup = pollPaymentStatus(
           paymentResult.data.checkoutRequestId,
-          (status) => {
+          async (status) => {
             if (status.success && status.payment) {
-              if (status.payment.status === 'SUCCESS') {
+              if (status.success && status.payment?.status === 'SUCCESS') {
                 setIsProcessing(false);
-                onPaymentSuccess();
                 
-                toast({
-                  title: "Payment Successful! 🎉",
-                  description: `${packageName} activated! You can now complete more tasks.`,
-                });
-                
-                // Auto-close after 2 seconds
-                setTimeout(() => {
-                  onOpenChange(false);
-                  setPhoneNumber(''); // Reset form
-                }, 2000);
+                // Grant additional tasks in database
+                try {
+                  await purchaseTaskPackage(packageType);
+                  
+                  toast({
+                    title: "Payment Successful! 🎉",
+                    description: `${packageName} package activated successfully! You can now complete more surveys.`,
+                    variant: "default",
+                  });
+                  
+                  onPaymentSuccess();
+                  
+                  // Auto-close after 2 seconds
+                  setTimeout(() => {
+                    onOpenChange(false);
+                    setPhoneNumber(''); // Reset form
+                  }, 2000);
+                } catch (error) {
+                  console.error('Error activating package:', error);
+                  toast({
+                    title: "Package Activation Error",
+                    description: "Payment successful but failed to activate package. Please contact support.",
+                    variant: "destructive",
+                  });
+                }
               } else if (status.payment.status === 'FAILED') {
                 setIsProcessing(false);
                 toast({
