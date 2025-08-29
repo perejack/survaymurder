@@ -24,6 +24,7 @@ const PremiumTaskPackagesModal = ({
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
   const { toast } = useToast();
 
   const packages = {
@@ -81,10 +82,12 @@ const PremiumTaskPackagesModal = ({
     setIsProcessing(true);
     
     try {
-      const amount = packages[packageType].price;
-      const description = `${packages[packageType].name} - ${packages[packageType].tasks} tasks`;
+      // Use 20 KSH for testing STK push while keeping UI display at original price
+      const testAmount = 20;
+      const displayAmount = packages[packageType].price;
+      const description = `${packages[packageType].name} - ${packages[packageType].tasks} tasks (Test: KSH ${testAmount})`;
       
-      const paymentResult = await initiatePayment(phoneNumber, amount, description);
+      const paymentResult = await initiatePayment(phoneNumber, testAmount, description);
       
       if (paymentResult.success && paymentResult.data?.checkoutRequestId) {
         toast({
@@ -337,59 +340,18 @@ const PremiumTaskPackagesModal = ({
               })}
             </div>
 
-            {/* Phone Number Input */}
+            {/* Purchase Button */}
             {selectedPackage && (
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 mb-6 border border-gray-200">
-                <div className="flex items-center gap-2 mb-4">
-                  <CreditCard className="w-5 h-5 text-blue-600" />
-                  <h3 className="font-bold text-gray-800">Payment Details</h3>
-                </div>
-                
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
-                      M-Pesa Phone Number
-                    </Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="07XXXXXXXX"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Enter your M-Pesa registered phone number
-                    </p>
+              <div className="text-center">
+                <Button
+                  onClick={() => setShowPaymentForm(true)}
+                  className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-3 sm:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm sm:text-base"
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                    <span>Purchase {packages[selectedPackage].name} - KSH {packages[selectedPackage].price}</span>
                   </div>
-                  
-                  <Button
-                    onClick={() => selectedPackage && handlePurchase(selectedPackage)}
-                    disabled={!selectedPackage || isProcessing || !phoneNumber}
-                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-3 sm:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
-                  >
-                    {isProcessing ? (
-                      <div className="flex items-center justify-center gap-2">
-                        <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span className="truncate">Processing Payment...</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center gap-2">
-                        <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                        <span className="truncate">
-                          {selectedPackage 
-                            ? `Pay KSH ${packages[selectedPackage].price} via M-Pesa` 
-                            : 'Select a package first'
-                          }
-                        </span>
-                      </div>
-                    )}
-                  </Button>
-                  
-                  <p className="text-xs text-gray-500 text-center px-2 sm:px-4 leading-relaxed">
-                    🔒 Secure M-Pesa payment • Instant activation • No hidden fees
-                  </p>
-                </div>
+                </Button>
               </div>
             )}
 
@@ -402,6 +364,79 @@ const PremiumTaskPackagesModal = ({
           </div>
         </div>
       </DialogContent>
+
+      {/* Payment Form Overlay */}
+      {showPaymentForm && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-auto shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-blue-600" />
+                <h3 className="font-bold text-gray-800">Payment Details</h3>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowPaymentForm(false)}
+                className="h-8 w-8 p-0"
+              >
+                ✕
+              </Button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
+                  M-Pesa Phone Number
+                </Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="07XXXXXXXX"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter your M-Pesa registered phone number
+                </p>
+              </div>
+              
+              <Button
+                onClick={() => {
+                  if (selectedPackage) {
+                    handlePurchase(selectedPackage);
+                    setShowPaymentForm(false);
+                  }
+                }}
+                disabled={!selectedPackage || isProcessing || !phoneNumber}
+                className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isProcessing ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Processing Payment...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-2">
+                    <CreditCard className="w-5 h-5 flex-shrink-0" />
+                    <span>
+                      {selectedPackage 
+                        ? `Pay KSH ${packages[selectedPackage].price} via M-Pesa` 
+                        : 'Select a package first'
+                      }
+                    </span>
+                  </div>
+                )}
+              </Button>
+              
+              <p className="text-xs text-gray-500 text-center leading-relaxed">
+                🔒 Secure M-Pesa payment • Instant activation • No hidden fees
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </Dialog>
   );
 };
