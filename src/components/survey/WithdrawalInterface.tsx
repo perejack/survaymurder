@@ -197,14 +197,6 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
     }
   };
 
-  // This code should never execute because users should always be blocked by dynamic minimum balance
-  // But keeping it as fallback for platinum users who bypass the blocks
-  // toast({
-  //   title: "System Error", 
-  //   description: "This withdrawal path should not be accessible. Please contact support.",
-  //   variant: "destructive"
-  // });
-  };
 
   
   // Processing State - Show loading with real-time status
