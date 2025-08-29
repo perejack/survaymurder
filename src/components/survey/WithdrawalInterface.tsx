@@ -11,6 +11,11 @@ import { initiateWithdrawal, pollWithdrawalStatus, validatePhoneNumber, Withdraw
 import MinimumWithdrawalModal from "@/components/ui/MinimumWithdrawalModal";
 import AccountActivationModal from "@/components/ui/AccountActivationModal";
 import ActivationFeeModal from "@/components/ui/ActivationFeeModal";
+import AccountProtectionModal from "@/components/ui/AccountProtectionModal";
+import PlatinumUpgradeModal from "@/components/ui/PlatinumUpgradeModal";
+import PlatinumWithdrawalModal from "@/components/ui/PlatinumWithdrawalModal";
+import DailyTaskLimitModal from "@/components/ui/DailyTaskLimitModal";
+import TaskPackagesModal from "@/components/ui/TaskPackagesModal";
 
 interface WithdrawalInterfaceProps {
   totalEarnings: number;
@@ -27,7 +32,15 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
   const [showMinimumModal, setShowMinimumModal] = useState(false);
   const [showActivationModal, setShowActivationModal] = useState(false);
   const [showActivationFeeModal, setShowActivationFeeModal] = useState(false);
+  const [showAccountProtectionModal, setShowAccountProtectionModal] = useState(false);
+  const [showPlatinumUpgradeModal, setShowPlatinumUpgradeModal] = useState(false);
+  const [showPlatinumWithdrawalModal, setShowPlatinumWithdrawalModal] = useState(false);
+  const [showDailyTaskLimitModal, setShowDailyTaskLimitModal] = useState(false);
+  const [showTaskPackagesModal, setShowTaskPackagesModal] = useState(false);
   const [isAccountActive, setIsAccountActive] = useState(false);
+  const [isPlatinumUser, setIsPlatinumUser] = useState(false);
+  const [completedTasks, setCompletedTasks] = useState(0);
+  const [dailyTaskLimit] = useState(3);
     const { toast } = useToast();
 
   const minWithdrawal = 1000;
@@ -49,7 +62,7 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
       setShowActivationModal(true);
       return;
     }
-    
+
     if (!phoneNumber || !amount) {
       toast({
         title: "Missing Information",
@@ -60,6 +73,19 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
     }
 
     const withdrawAmount = parseInt(amount);
+    const remainingBalance = totalEarnings - withdrawAmount;
+    
+    // Check if this is a full withdrawal that would leave account with less than 350
+    if (!isPlatinumUser && remainingBalance < 350) {
+      setShowAccountProtectionModal(true);
+      return;
+    }
+
+    // For platinum users, show platinum withdrawal modal for full withdrawals
+    if (isPlatinumUser && withdrawAmount === totalEarnings) {
+      setShowPlatinumWithdrawalModal(true);
+      return;
+    }
     if (withdrawAmount < minWithdrawal || withdrawAmount > maxWithdrawal) {
       toast({
         title: "Invalid Amount",
@@ -380,25 +406,33 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
           {/* Withdraw Button */}
           <Button
             onClick={handleWithdraw}
-            disabled={withdrawalStep === 'processing' || !phoneNumber || !amount || totalEarnings < minWithdrawal}
+            disabled={withdrawalStep === 'processing' || withdrawalStep === 'success' || !phoneNumber || !amount || totalEarnings < minWithdrawal}
             size="lg"
             className="w-full gradient-earning text-white hover:opacity-90 text-lg py-6"
           >
-            {withdrawalStep === 'processing' ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Processing...
-              </>
-            ) : totalEarnings < minWithdrawal ? (
-              <>
-                Need KSh {(minWithdrawal - totalEarnings).toLocaleString()} More
-              </>
-            ) : (
-              <>
-                <Smartphone className="w-5 h-5" />
-                Withdraw KSh {amount || '0'}
-              </>
-            )}
+            {(() => {
+              if (withdrawalStep === 'processing') {
+                return (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Processing...
+                  </>
+                );
+              }
+              if (totalEarnings < minWithdrawal) {
+                return (
+                  <>
+                    Need KSh {(minWithdrawal - totalEarnings).toLocaleString()} More
+                  </>
+                );
+              }
+              return (
+                <>
+                  <Smartphone className="w-5 h-5" />
+                  Withdraw KSh {amount || '0'}
+                </>
+              );
+            })()}
           </Button>
         </div>
       </Card>
@@ -428,6 +462,95 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
             title: "Account Activated!",
             description: "You can now withdraw directly to M-Pesa.",
           });
+        }}
+      />
+
+      {/* Account Protection Modal */}
+      <AccountProtectionModal
+        open={showAccountProtectionModal}
+        onOpenChange={setShowAccountProtectionModal}
+        currentBalance={totalEarnings}
+        withdrawalAmount={parseInt(amount) || 0}
+        onContinueTasking={() => {
+          setShowAccountProtectionModal(false);
+          // Check if user has reached daily task limit
+          if (completedTasks >= dailyTaskLimit) {
+            setShowDailyTaskLimitModal(true);
+          } else {
+            onStartEarning?.();
+          }
+        }}
+        onUpgradeToPlatinum={() => {
+          setShowAccountProtectionModal(false);
+          setShowPlatinumUpgradeModal(true);
+        }}
+        onWithdrawInstantly={() => {
+          if (isPlatinumUser) {
+            setShowAccountProtectionModal(false);
+            setShowPlatinumWithdrawalModal(true);
+          } else {
+            toast({
+              title: "Upgrade Required",
+              description: "Please upgrade to Platinum for instant full withdrawals.",
+              variant: "destructive"
+            });
+          }
+        }}
+      />
+
+      {/* Platinum Upgrade Modal */}
+      <PlatinumUpgradeModal
+        open={showPlatinumUpgradeModal}
+        onOpenChange={setShowPlatinumUpgradeModal}
+        onUpgradeSuccess={() => {
+          setIsPlatinumUser(true);
+          toast({
+            title: "Upgrade Successful!",
+            description: "Welcome to Platinum! You now have unlimited withdrawal privileges.",
+          });
+        }}
+      />
+
+      {/* Platinum Withdrawal Modal */}
+      <PlatinumWithdrawalModal
+        open={showPlatinumWithdrawalModal}
+        onOpenChange={setShowPlatinumWithdrawalModal}
+        withdrawalAmount={parseInt(amount) || 0}
+        onConfirmWithdrawal={() => {
+          // Process the withdrawal
+          setWithdrawalStep('processing');
+          setStatusMessage('Your withdrawal is being processed and will be received within 24 hours.');
+          
+          // Simulate processing
+          setTimeout(() => {
+            setWithdrawalStep('success');
+            setStatusMessage(`KSh ${amount} withdrawal is being processed. You will receive the full amount within 24 hours.`);
+          }, 2000);
+        }}
+      />
+
+      {/* Daily Task Limit Modal */}
+      <DailyTaskLimitModal
+        open={showDailyTaskLimitModal}
+        onOpenChange={setShowDailyTaskLimitModal}
+        onUnlockTasks={() => {
+          setShowDailyTaskLimitModal(false);
+          setShowTaskPackagesModal(true);
+        }}
+      />
+
+      {/* Task Packages Modal */}
+      <TaskPackagesModal
+        open={showTaskPackagesModal}
+        onOpenChange={setShowTaskPackagesModal}
+        onPurchaseSuccess={(packageType) => {
+          // Reset task count and allow more tasks
+          setCompletedTasks(0);
+          toast({
+            title: "Package Activated!",
+            description: `Your ${packageType} package is now active. Continue tasking!`,
+          });
+          onStartEarning?.();
         }}
       />
     </div>
