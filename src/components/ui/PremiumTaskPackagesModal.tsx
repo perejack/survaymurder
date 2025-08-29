@@ -120,40 +120,6 @@ const PremiumTaskPackagesModal = ({
     );
   }
 
-  if (isProcessing) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-[95vw] max-w-[420px] p-0 overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 border-0 shadow-2xl">
-          <DialogDescription className="sr-only">
-            Processing task package payment
-          </DialogDescription>
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-pink-500/5" />
-            
-            <div className="relative z-10 p-8 text-center">
-              <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-                <Loader2 className="w-12 h-12 text-white animate-spin" />
-              </div>
-              
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                Processing Payment...
-              </h2>
-              
-              <p className="text-gray-600 mb-4">
-                Please complete the M-Pesa payment on your phone
-              </p>
-              
-              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-blue-200">
-                <p className="text-sm text-gray-700">
-                  Check your phone for the M-Pesa prompt and enter your PIN to complete the payment.
-                </p>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
