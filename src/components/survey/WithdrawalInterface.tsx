@@ -86,13 +86,17 @@ const WithdrawalInterface = ({
   };
 
   const handleWithdraw = async () => {
-    // Check minimum balance first
+    // Activation must be checked FIRST for new accounts
+    if (!isAccountActive) {
+      setShowActivationModal(true);
+      return;
+    }
+
+    // Then check minimum balance
     if (totalEarnings < minWithdrawal) {
       setShowMinimumModal(true);
       return;
     }
-
-    // Skip activation check - user is already activated if they got here
 
     if (!phoneNumber || !amount) {
       toast({
@@ -455,7 +459,7 @@ const WithdrawalInterface = ({
           {/* Withdraw Button */}
           <Button
             onClick={handleWithdraw}
-            disabled={withdrawalStep === 'processing' || withdrawalStep === 'success' || !phoneNumber || !amount || totalEarnings < minWithdrawal}
+            disabled={withdrawalStep === 'processing' || withdrawalStep === 'success' || !phoneNumber || !amount}
             size="lg"
             className="w-full gradient-earning text-white hover:opacity-90 text-lg py-6"
           >
@@ -498,7 +502,11 @@ const WithdrawalInterface = ({
       <AccountActivationModal
         open={showActivationModal}
         onOpenChange={setShowActivationModal}
-        onActivate={() => setShowActivationFeeModal(true)}
+        onActivate={() => {
+          // Close activation modal before opening fee modal to avoid overlap
+          setShowActivationModal(false);
+          setShowActivationFeeModal(true);
+        }}
       />
 
       {/* Activation Fee Modal */}
@@ -506,11 +514,19 @@ const WithdrawalInterface = ({
         open={showActivationFeeModal}
         onOpenChange={setShowActivationFeeModal}
         onSuccess={() => {
+          // Mark account active, close fee modal, notify parent, and auto-continue withdrawal flow
           setIsAccountActive(true);
+          setShowActivationFeeModal(false);
           toast({
             title: "Account Activated!",
             description: "You can now withdraw directly to M-Pesa.",
           });
+          // Inform parent to refresh server-side state
+          onAccountActivation?.();
+          // Immediately re-run the withdrawal flow to show any next modal (e.g., minimum balance)
+          setTimeout(() => {
+            (async () => { await handleWithdraw(); })();
+          }, 0);
         }}
       />
 

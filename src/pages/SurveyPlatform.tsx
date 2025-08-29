@@ -164,11 +164,8 @@ const SurveyPlatform = () => {
               
               <Button
                 onClick={() => {
-                  if (totalEarnings < 1000) {
-                    setShowMinimumModal(true);
-                  } else {
-                    setCurrentView('withdrawal');
-                  }
+                  // Always enter Withdrawal flow; it will enforce activation-first and then minimum checks
+                  setCurrentView('withdrawal');
                 }}
                 className="bg-accent hover:bg-accent/90 text-white rounded-full px-6 py-2 font-semibold shadow-lg"
               >
