@@ -3,11 +3,8 @@ import { Dialog, DialogContent, DialogDescription } from "@/components/ui/dialog
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Package, Zap, DollarSign, CheckCircle, ArrowRight, Sparkles, Crown, Loader2, CreditCard, Star, Shield, Trophy, Infinity } from "lucide-react";
-import { useToast } from '@/hooks/use-toast';
-import { initiatePayment, pollPaymentStatus, validatePhoneNumber } from '../../utils/paymentService';
+import PaymentFormModal from './PaymentFormModal';
 
 interface PremiumTaskPackagesModalProps {
   open: boolean;
@@ -21,11 +18,8 @@ const PremiumTaskPackagesModal = ({
   onPurchaseSuccess 
 }: PremiumTaskPackagesModalProps) => {
   const [selectedPackage, setSelectedPackage] = useState<'basic' | 'pro' | null>(null);
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [isComplete, setIsComplete] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
-  const { toast } = useToast();
+  const [isComplete, setIsComplete] = useState(false);
 
   const packages = {
     basic: {
@@ -69,85 +63,10 @@ const PremiumTaskPackagesModal = ({
     }
   };
 
-  const handlePurchase = async (packageType: 'basic' | 'pro') => {
-    if (!validatePhoneNumber(phoneNumber)) {
-      toast({
-        title: "Invalid Phone Number",
-        description: "Please enter a valid Kenyan phone number (07XXXXXXXX or 01XXXXXXXX)",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsProcessing(true);
-    
-    try {
-      // Use 20 KSH for testing STK push while keeping UI display at original price
-      const testAmount = 20;
-      const displayAmount = packages[packageType].price;
-      const description = `${packages[packageType].name} - ${packages[packageType].tasks} tasks (Test: KSH ${testAmount})`;
-      
-      const paymentResult = await initiatePayment(phoneNumber, testAmount, description);
-      
-      if (paymentResult.success && paymentResult.data?.checkoutRequestId) {
-        toast({
-          title: "STK Push Sent! 📱",
-          description: "Check your phone and enter your M-Pesa PIN to complete payment",
-        });
-        
-        // Start real payment status polling
-        const cleanup = pollPaymentStatus(
-          paymentResult.data.checkoutRequestId,
-          (status) => {
-            if (status.success && status.payment) {
-              if (status.payment.status === 'SUCCESS') {
-                setIsProcessing(false);
-                setIsComplete(true);
-                setSelectedPackage(packageType);
-                onPurchaseSuccess(packageType);
-                
-                toast({
-                  title: "Payment Successful! 🎉",
-                  description: `${packages[packageType].name} activated! You can now complete more tasks.`,
-                });
-                
-                // Auto-redirect after 2 seconds
-                setTimeout(() => {
-                  onOpenChange(false);
-                }, 2000);
-              } else if (status.payment.status === 'FAILED') {
-                setIsProcessing(false);
-                toast({
-                  title: "Payment Failed",
-                  description: status.payment.resultDesc || "Payment was not completed. Please try again.",
-                  variant: "destructive",
-                });
-              }
-            } else if (!status.success && status.message) {
-              setIsProcessing(false);
-              toast({
-                title: "Payment Error",
-                description: status.message,
-                variant: "destructive",
-              });
-            }
-          }
-        );
-        
-        // Cleanup polling if component unmounts
-        return cleanup;
-        
-      } else {
-        throw new Error(paymentResult.message || 'Payment initiation failed');
-      }
-    } catch (error) {
-      console.error('Payment error:', error);
-      toast({
-        title: "Payment Failed",
-        description: "There was an error processing your payment. Please try again.",
-        variant: "destructive",
-      });
-      setIsProcessing(false);
+  const handlePaymentSuccess = () => {
+    if (selectedPackage) {
+      setIsComplete(true);
+      onPurchaseSuccess(selectedPackage);
     }
   };
 
@@ -366,79 +285,16 @@ const PremiumTaskPackagesModal = ({
         </div>
       </DialogContent>
 
-      {/* Payment Form Overlay */}
-      {showPaymentForm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-auto shadow-2xl relative" style={{ zIndex: 10000 }}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-blue-600" />
-                <h3 className="font-bold text-gray-800">Payment Details</h3>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowPaymentForm(false)}
-                className="h-8 w-8 p-0"
-              >
-                ✕
-              </Button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="payment-phone" className="text-sm font-medium text-gray-700">
-                  M-Pesa Phone Number
-                </Label>
-                <Input
-                  id="payment-phone"
-                  type="tel"
-                  placeholder="07XXXXXXXX"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 relative z-10"
-                  autoFocus
-                  style={{ zIndex: 10001 }}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Enter your M-Pesa registered phone number
-                </p>
-              </div>
-              
-              <Button
-                onClick={() => {
-                  if (selectedPackage) {
-                    handlePurchase(selectedPackage);
-                    setShowPaymentForm(false);
-                  }
-                }}
-                disabled={!selectedPackage || isProcessing || !phoneNumber}
-                className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isProcessing ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Processing Payment...</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center gap-2">
-                    <CreditCard className="w-5 h-5 flex-shrink-0" />
-                    <span>
-                      {selectedPackage 
-                        ? `Pay KSH ${packages[selectedPackage].price} via M-Pesa` 
-                        : 'Select a package first'
-                      }
-                    </span>
-                  </div>
-                )}
-              </Button>
-              
-              <p className="text-xs text-gray-500 text-center leading-relaxed">
-                🔒 Secure M-Pesa payment • Instant activation • No hidden fees
-              </p>
-            </div>
-          </div>
-        </div>
+      {/* Payment Form Modal */}
+      {selectedPackage && (
+        <PaymentFormModal
+          open={showPaymentForm}
+          onOpenChange={setShowPaymentForm}
+          packageType={selectedPackage}
+          packageName={packages[selectedPackage].name}
+          packagePrice={packages[selectedPackage].price}
+          onPaymentSuccess={handlePaymentSuccess}
+        />
       )}
     </Dialog>
   );
