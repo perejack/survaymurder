@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Smartphone, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -15,8 +15,8 @@ import AccountWarningModal from "@/components/ui/AccountWarningModal";
 import AccountOptionsModal from "@/components/ui/AccountOptionsModal";
 import PlatinumUpgradeModal from "@/components/ui/PlatinumUpgradeModal";
 import PlatinumWithdrawalModal from "@/components/ui/PlatinumWithdrawalModal";
-import DailyTaskLimitModal from "@/components/ui/DailyTaskLimitModal";
-import TaskPackagesModal from "@/components/ui/TaskPackagesModal";
+import ModernDailyTaskLimitModal from "@/components/ui/ModernDailyTaskLimitModal";
+import ModernTaskPackagesModal from "@/components/ui/ModernTaskPackagesModal";
 import WithdrawalSuccessModal from "@/components/ui/WithdrawalSuccessModal";
 
 interface WithdrawalInterfaceProps {
@@ -44,7 +44,27 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
   const [isAccountActive, setIsAccountActive] = useState(false);
   const [isPlatinumUser, setIsPlatinumUser] = useState(false);
   const [completedTasks, setCompletedTasks] = useState(0);
-  const [dailyTaskLimit] = useState(3);
+  
+  // Track survey completion and show task limit modal on 3rd attempt
+  const handleSurveyCompletion = () => {
+    const newCompletedTasks = completedTasks + 1;
+    setCompletedTasks(newCompletedTasks);
+    
+    // Show task exhaustion modal only after 3rd survey attempt
+    if (newCompletedTasks >= 3) {
+      setShowDailyTaskLimitModal(true);
+    }
+  };
+  
+  // Expose survey completion handler to parent component
+  useEffect(() => {
+    if (onStartEarning) {
+      // Override the onStartEarning to include our tracking
+      const originalOnStartEarning = onStartEarning;
+      (window as any).handleSurveyCompletion = handleSurveyCompletion;
+    }
+  }, [completedTasks, onStartEarning]);
+  const [dailyTaskLimit, setDailyTaskLimit] = useState(3);
     const { toast } = useToast();
 
   const minWithdrawal = 1000;
@@ -506,10 +526,9 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
         onOpenChange={setShowAccountOptionsModal}
         onContinueTasking={() => {
           setShowAccountOptionsModal(false);
-          // Force users into survey exhaustion trap after choosing to continue
-          // Simulate that they've done 2-3 surveys and hit the daily limit
-          setCompletedTasks(dailyTaskLimit);
-          setShowDailyTaskLimitModal(true);
+          // Let users complete 2 surveys first, then block on 3rd attempt
+          setCompletedTasks(0); // Reset to allow surveys
+          onStartEarning?.(); // Let them do surveys
         }}
         onUpgradeToPlatinum={() => {
           setShowAccountOptionsModal(false);
@@ -564,40 +583,36 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
         }}
       />
 
-      {/* Daily Task Limit Modal */}
-      <DailyTaskLimitModal
+      {/* Modern Daily Task Limit Modal */}
+      <ModernDailyTaskLimitModal
         open={showDailyTaskLimitModal}
         onOpenChange={setShowDailyTaskLimitModal}
-        onUnlockTasks={() => {
+        completedTasks={completedTasks}
+        totalTasks={dailyTaskLimit}
+        onUnlockMoreTasks={() => {
           setShowDailyTaskLimitModal(false);
           setShowTaskPackagesModal(true);
         }}
       />
 
-      {/* Task Packages Modal */}
-      <TaskPackagesModal
+      {/* Modern Task Packages Modal */}
+      <ModernTaskPackagesModal
         open={showTaskPackagesModal}
         onOpenChange={setShowTaskPackagesModal}
         onPurchaseSuccess={(packageType) => {
-          // Don't reset task count - keep them trapped
-          // Add some earnings but maintain the withdrawal block
-          const packageEarnings = packageType === 'basic' ? 200 : 350;
-          // Note: In real implementation, you'd update totalEarnings state
-          // The dynamic minimum balance will still prevent withdrawal
+          setShowTaskPackagesModal(false);
+          // Add more tasks based on package
+          const additionalTasks = packageType === 'basic' ? 10 : 20;
+          setDailyTaskLimit(prev => prev + additionalTasks);
+          setCompletedTasks(0); // Reset completed tasks
           
           toast({
             title: "Package Activated!",
-            description: `Your ${packageType} package is now active. You earned KSh ${packageEarnings}!`,
+            description: `${additionalTasks} additional tasks unlocked. Happy earning!`,
           });
           
-          // After a short delay, they'll try to withdraw again and hit the same block
-          setTimeout(() => {
-            toast({
-              title: "Try Withdrawing Now!",
-              description: "Your earnings have increased. Check your withdrawal options.",
-              variant: "default"
-            });
-          }, 2000);
+          // Let them continue with surveys
+          onStartEarning?.();
         }}
       />
 
