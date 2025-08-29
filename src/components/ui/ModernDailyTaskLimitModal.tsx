@@ -11,8 +11,6 @@ interface ModernDailyTaskLimitModalProps {
   onUnlockTasks: () => void;
   completedTasks: number;
   dailyLimit: number;
-  canCompleteSurvey: boolean;
-  additionalSurveysUnlocked: number;
 }
 
 const ModernDailyTaskLimitModal = ({ 
@@ -20,9 +18,7 @@ const ModernDailyTaskLimitModal = ({
   onOpenChange, 
   onUnlockTasks,
   completedTasks,
-  dailyLimit,
-  canCompleteSurvey,
-  additionalSurveysUnlocked
+  dailyLimit
 }: ModernDailyTaskLimitModalProps) => {
 
   return (
@@ -54,32 +50,18 @@ const ModernDailyTaskLimitModal = ({
 
           {/* Content */}
           <div className="relative z-10 px-6 pb-6">
-            {/* Status Message */}
-            {additionalSurveysUnlocked > 0 ? (
-              <Card className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 mb-4 border-2 border-green-200 shadow-lg">
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-2 mb-3">
-                    <CheckCircle className="w-6 h-6 text-green-600" />
-                    <span className="text-lg font-bold text-green-800">Premium Tasks Available!</span>
-                  </div>
-                  <div className="text-4xl font-bold text-green-600 mb-2">{additionalSurveysUnlocked}</div>
-                  <p className="text-gray-700 font-medium">Additional surveys unlocked</p>
-                  <p className="text-sm text-gray-500 mt-2">You can continue earning right now!</p>
+            {/* 24 Hour Reload Message */}
+            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 mb-4 border-2 border-blue-200 shadow-lg">
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <Clock className="w-6 h-6 text-blue-600" />
+                  <span className="text-lg font-bold text-blue-800">Tasks Reload In:</span>
                 </div>
-              </Card>
-            ) : (
-              <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 mb-4 border-2 border-blue-200 shadow-lg">
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-2 mb-3">
-                    <Clock className="w-6 h-6 text-blue-600" />
-                    <span className="text-lg font-bold text-blue-800">Tasks Reload In:</span>
-                  </div>
-                  <div className="text-4xl font-bold text-blue-600 mb-2">24 Hours</div>
-                  <p className="text-gray-700 font-medium">Tasks will reload in 24 hours</p>
-                  <p className="text-sm text-gray-500 mt-2">Come back tomorrow for more earning opportunities!</p>
-                </div>
-              </Card>
-            )}
+                <div className="text-4xl font-bold text-blue-600 mb-2">24 Hours</div>
+                <p className="text-gray-700 font-medium">Tasks will reload in 24 hours</p>
+                <p className="text-sm text-gray-500 mt-2">Come back tomorrow for more earning opportunities!</p>
+              </div>
+            </Card>
 
             {/* Progress Card */}
             <Card className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 mb-4 border-2 border-green-200">
@@ -89,7 +71,7 @@ const ModernDailyTaskLimitModal = ({
                 </div>
                 <div className="flex-1">
                   <div className="font-semibold text-green-800">Today's Progress</div>
-                  <div className="text-sm text-green-600">{completedTasks}/{dailyLimit + additionalSurveysUnlocked} surveys completed</div>
+                  <div className="text-sm text-green-600">{completedTasks}/{dailyLimit} surveys completed</div>
                 </div>
                 <Badge className="bg-green-100 text-green-800 border-green-300">
                   Complete
@@ -125,39 +107,24 @@ const ModernDailyTaskLimitModal = ({
               </div>
             </Card>
 
-            {/* Action Button */}
+            {/* Unlock Button */}
             <div className="space-y-3">
-              {additionalSurveysUnlocked > 0 ? (
-                <Button 
-                  onClick={() => onOpenChange(false)}
-                  className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-4 px-6 rounded-2xl shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl"
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <CheckCircle className="w-5 h-5" />
-                    <span>Continue Earning</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </div>
-                </Button>
-              ) : (
-                <>
-                  <Button 
-                    onClick={onUnlockTasks}
-                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-4 px-6 rounded-2xl shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl"
-                  >
-                    <div className="flex items-center justify-center gap-2">
-                      <Zap className="w-5 h-5" />
-                      <span>Unlock More Tasks</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </div>
-                  </Button>
-                  
-                  <div className="text-center">
-                    <p className="text-xs text-gray-500">
-                      Or wait 24 hours for tasks to reload
-                    </p>
-                  </div>
-                </>
-              )}
+              <Button 
+                onClick={onUnlockTasks}
+                className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-4 px-6 rounded-2xl shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <Zap className="w-5 h-5" />
+                  <span>Unlock More Tasks</span>
+                  <ArrowRight className="w-4 h-4" />
+                </div>
+              </Button>
+              
+              <div className="text-center">
+                <p className="text-xs text-gray-500">
+                  Or wait 24 hours for tasks to reload
+                </p>
+              </div>
             </div>
 
             {/* Footer message */}

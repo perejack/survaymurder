@@ -263,30 +263,46 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function: Purchase Task Package
-CREATE OR REPLACE FUNCTION public.purchase_task_package(user_uuid UUID, package_type TEXT)
-RETURNS BOOLEAN AS $$
+CREATE OR REPLACE FUNCTION public.purchase_task_package(
+  user_uuid UUID,
+  package_type TEXT,
+  additional_tasks INTEGER DEFAULT 10
+)
+RETURNS TABLE(
+  success BOOLEAN,
+  message TEXT,
+  new_daily_limit INTEGER
+) AS $$
 DECLARE
-  additional_surveys INTEGER;
+  current_limit INTEGER;
+  new_limit INTEGER;
 BEGIN
-  -- Determine additional surveys based on package type
-  additional_surveys := CASE 
-    WHEN package_type = 'basic' THEN 10
-    WHEN package_type = 'pro' THEN 20
-    ELSE 0
-  END;
+  -- Get current daily limit
+  SELECT COALESCE(daily_survey_limit, 2) INTO current_limit
+  FROM public.user_profiles
+  WHERE id = user_uuid;
   
-  -- Update daily completions to add more surveys
-  INSERT INTO public.daily_survey_completions (user_id, completion_date, additional_surveys_unlocked, task_packages_purchased)
-  VALUES (user_uuid, CURRENT_DATE, additional_surveys, 1)
-  ON CONFLICT (user_id, completion_date) 
-  DO UPDATE SET 
-    additional_surveys_unlocked = daily_survey_completions.additional_surveys_unlocked + additional_surveys,
-    task_packages_purchased = daily_survey_completions.task_packages_purchased + 1,
-    updated_at = NOW();
+  -- Calculate new limit
+  new_limit := current_limit + additional_tasks;
   
-  RETURN true;
+  -- Update user profile with new daily limit
+  UPDATE public.user_profiles
+  SET daily_survey_limit = new_limit,
+      updated_at = NOW()
+  WHERE id = user_uuid;
+  
+  -- Insert transaction record
+  INSERT INTO public.earning_transactions (user_id, transaction_type, amount, description)
+  VALUES (user_uuid, 'task_package_purchase', -250.00, 
+          'Purchased ' || package_type || ' package - ' || additional_tasks || ' additional tasks');
+  
+  RETURN QUERY SELECT 
+    true as success,
+    'Task package purchased successfully! You can now complete ' || additional_tasks || ' more surveys today.' as message,
+    new_limit as new_daily_limit;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
 
 -- =====================================================
 -- 8. AUTOMATIC USER PROFILE CREATION TRIGGER

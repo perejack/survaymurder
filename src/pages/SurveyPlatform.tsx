@@ -95,17 +95,15 @@ const SurveyPlatform = () => {
     await loadSurveyStatus(); // Refresh status after activation
   };
 
-  const handleUnlockTasks = async () => {
+  const handleUnlockTasks = () => {
     setShowTaskLimitModal(false);
-    // Refresh survey status after payment to get updated limits
-    await loadSurveyStatus();
     setShowTaskPackagesModal(true);
   };
 
-  const handleTaskPackagePurchase = async (packageType: 'basic' | 'pro') => {
+  const handleTaskPackagePurchase = (packageType: 'basic' | 'pro') => {
     setShowTaskPackagesModal(false);
     // Refresh survey status to reflect new limits
-    await loadSurveyStatus();
+    loadSurveyStatus();
   };
 
   const handleBackToCategories = () => {
@@ -243,8 +241,6 @@ const SurveyPlatform = () => {
         onOpenChange={setShowTaskLimitModal}
         completedTasks={surveyStatus.surveys_completed}
         dailyLimit={surveyStatus.daily_limit}
-        canCompleteSurvey={surveyStatus.can_complete_survey}
-        additionalSurveysUnlocked={surveyStatus.daily_limit - 2}
         onUnlockTasks={handleUnlockTasks}
       />
 

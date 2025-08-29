@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import SurveyPlatform from "./pages/SurveyPlatform";
-import PremiumSurveyPage from "./pages/PremiumSurveyPage";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import ScrollToTop from "./components/ScrollToTop";
@@ -32,8 +31,6 @@ const AppContent = () => {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/survey" element={<SurveyPlatform />} />
-        <Route path="/survey-platform" element={<SurveyPlatform />} />
-        <Route path="/premium-survey" element={<PremiumSurveyPage />} />
         <Route path="/profile" element={<Profile />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />

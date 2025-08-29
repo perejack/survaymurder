@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './dialog';
-import { Button } from './button';
-import { Input } from './input';
-import { Label } from './label';
-import { Loader2, CreditCard } from 'lucide-react';
-import { useToast } from '../../hooks/use-toast';
-import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { CreditCard, X } from "lucide-react";
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { initiatePayment, pollPaymentStatus, validatePhoneNumber } from '../../utils/paymentService';
 
 interface PaymentFormModalProps {
@@ -17,18 +18,19 @@ interface PaymentFormModalProps {
   onPaymentSuccess: () => void;
 }
 
-export default function PaymentFormModal({ 
+const PaymentFormModal = ({ 
   open, 
   onOpenChange, 
   packageType,
   packageName,
   packagePrice,
   onPaymentSuccess
-}: PaymentFormModalProps) {
+}: PaymentFormModalProps) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
-  const { purchaseTaskPackage, getSurveyStatus } = useAuth();
+  const { purchaseTaskPackage } = useAuth();
+  const navigate = useNavigate();
 
   const handlePayment = async () => {
     if (!validatePhoneNumber(phoneNumber)) {
@@ -60,36 +62,35 @@ export default function PaymentFormModal({
           paymentResult.data.checkoutRequestId,
           async (status) => {
             if (status.success && status.payment) {
-              if (status.success && status.payment?.status === 'SUCCESS') {
+              if (status.payment.status === 'SUCCESS') {
                 setIsProcessing(false);
                 
-                // Grant additional tasks in database
                 try {
-                  console.log('About to call purchaseTaskPackage with:', packageType);
-                  const result = await purchaseTaskPackage(packageType);
-                  console.log('purchaseTaskPackage completed with result:', result);
+                  // Purchase task package in backend
+                  await purchaseTaskPackage(packageType);
+                  
+                  // Call parent success handler
+                  onPaymentSuccess();
                   
                   toast({
                     title: "Payment Successful! 🎉",
-                    description: `${packageName} package activated successfully! You can now complete more surveys.`,
-                    variant: "default",
+                    description: `${packageName} activated! Redirecting to surveys...`,
                   });
                   
-                  // Trigger survey status refresh in parent component
-                  onPaymentSuccess();
+                  // Close modal and navigate to survey questions
+                  onOpenChange(false);
+                  setPhoneNumber(''); // Reset form
                   
-                  // Auto-close and redirect to premium survey
+                  // Navigate directly to survey questions after short delay
                   setTimeout(() => {
-                    onOpenChange(false);
-                    setPhoneNumber(''); // Reset form
-                    // Redirect to premium survey page
-                    window.location.href = '/premium-survey';
-                  }, 2000);
+                    navigate('/survey-questions');
+                  }, 1000);
+                  
                 } catch (error) {
                   console.error('Error activating package:', error);
                   toast({
                     title: "Package Activation Error",
-                    description: `Payment successful but failed to activate package. Error: ${error.message}`,
+                    description: "Payment successful but package activation failed. Please contact support.",
                     variant: "destructive",
                   });
                 }
