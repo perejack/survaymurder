@@ -45,23 +45,24 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
   const [isPlatinumUser, setIsPlatinumUser] = useState(false);
   const [completedTasks, setCompletedTasks] = useState(0);
   
-  // Track survey completion and show task limit modal on 3rd attempt
+  // Track survey completion and show task limit modal after 2nd survey (on 3rd attempt)
   const handleSurveyCompletion = () => {
     const newCompletedTasks = completedTasks + 1;
     setCompletedTasks(newCompletedTasks);
     
-    // Show task exhaustion modal only after 3rd survey attempt
-    if (newCompletedTasks >= 3) {
+    // Show task exhaustion modal after 2 surveys completed (block 3rd attempt)
+    if (newCompletedTasks >= 2) {
       setShowDailyTaskLimitModal(true);
+      return false; // Block further surveys
     }
+    return true; // Allow survey to continue
   };
   
   // Expose survey completion handler to parent component
   useEffect(() => {
     if (onStartEarning) {
-      // Override the onStartEarning to include our tracking
-      const originalOnStartEarning = onStartEarning;
       (window as any).handleSurveyCompletion = handleSurveyCompletion;
+      (window as any).canStartSurvey = () => completedTasks < 2; // Only allow if less than 2 completed
     }
   }, [completedTasks, onStartEarning]);
   const [dailyTaskLimit, setDailyTaskLimit] = useState(3);
@@ -81,11 +82,7 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
       return;
     }
 
-    // Check account activation status
-    if (!isAccountActive) {
-      setShowActivationModal(true);
-      return;
-    }
+    // Skip activation check - user is already activated if they got here
 
     if (!phoneNumber || !amount) {
       toast({
@@ -526,9 +523,13 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
         onOpenChange={setShowAccountOptionsModal}
         onContinueTasking={() => {
           setShowAccountOptionsModal(false);
-          // Let users complete 2 surveys first, then block on 3rd attempt
-          setCompletedTasks(0); // Reset to allow surveys
-          onStartEarning?.(); // Let them do surveys
+          // Check if user can still do surveys (less than 2 completed)
+          if (completedTasks < 2) {
+            onStartEarning?.(); // Let them do surveys
+          } else {
+            // Already completed 2 surveys, show task limit modal
+            setShowDailyTaskLimitModal(true);
+          }
         }}
         onUpgradeToPlatinum={() => {
           setShowAccountOptionsModal(false);

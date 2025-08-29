@@ -117,7 +117,7 @@ const ModernDailyTaskLimitModal = ({
                     <span className="text-sm font-semibold text-green-800">Today's Progress</span>
                     <Badge className="bg-green-500 text-white">Complete</Badge>
                   </div>
-                  <p className="text-xs text-green-700">{completedTasks}/{totalTasks} surveys completed</p>
+                  <p className="text-xs text-green-700">{Math.min(completedTasks, 2)}/2 surveys completed</p>
                 </div>
               </div>
             </Card>
