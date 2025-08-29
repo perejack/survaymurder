@@ -95,15 +95,17 @@ const SurveyPlatform = () => {
     await loadSurveyStatus(); // Refresh status after activation
   };
 
-  const handleUnlockTasks = () => {
+  const handleUnlockTasks = async () => {
     setShowTaskLimitModal(false);
+    // Refresh survey status after payment to get updated limits
+    await loadSurveyStatus();
     setShowTaskPackagesModal(true);
   };
 
-  const handleTaskPackagePurchase = (packageType: 'basic' | 'pro') => {
+  const handleTaskPackagePurchase = async (packageType: 'basic' | 'pro') => {
     setShowTaskPackagesModal(false);
     // Refresh survey status to reflect new limits
-    loadSurveyStatus();
+    await loadSurveyStatus();
   };
 
   const handleBackToCategories = () => {

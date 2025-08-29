@@ -28,7 +28,7 @@ export default function PaymentFormModal({
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
-  const { purchaseTaskPackage } = useAuth();
+  const { purchaseTaskPackage, getSurveyStatus } = useAuth();
 
   const handlePayment = async () => {
     if (!validatePhoneNumber(phoneNumber)) {
@@ -73,6 +73,7 @@ export default function PaymentFormModal({
                     variant: "default",
                   });
                   
+                  // Trigger survey status refresh in parent component
                   onPaymentSuccess();
                   
                   // Auto-close after 2 seconds
