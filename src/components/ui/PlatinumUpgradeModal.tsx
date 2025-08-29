@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Crown, Zap, DollarSign, Clock, CheckCircle, ArrowRight, Sparkles, Star, Shield, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -122,6 +122,9 @@ const PlatinumUpgradeModal = ({
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="w-[95vw] max-w-[420px] p-0 overflow-hidden bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 border-0 shadow-2xl">
+          <DialogDescription className="sr-only">
+            Platinum upgrade successful confirmation
+          </DialogDescription>
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-pink-500/5 to-yellow-500/5" />
             
@@ -173,6 +176,9 @@ const PlatinumUpgradeModal = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-[480px] p-0 overflow-hidden bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 border-0 shadow-2xl">
+        <DialogDescription className="sr-only">
+          Upgrade to Platinum membership for unlimited surveys and exclusive benefits
+        </DialogDescription>
         <div className="relative">
           {/* Background decorative elements */}
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-pink-500/5 to-yellow-500/5" />

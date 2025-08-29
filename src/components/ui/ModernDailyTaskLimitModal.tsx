@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +48,9 @@ const ModernDailyTaskLimitModal = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md mx-auto bg-white rounded-3xl shadow-2xl border-0 p-0 overflow-hidden">
+        <DialogDescription className="sr-only">
+          Daily task limit reached. You can unlock more tasks with task packages or wait for reset.
+        </DialogDescription>
         <div className="relative">
           {/* Animated Background */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50"></div>
