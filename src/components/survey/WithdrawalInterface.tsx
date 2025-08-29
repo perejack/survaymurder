@@ -117,6 +117,14 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
       return;
     }
 
+    // Additional safety check - non-platinum users should never reach here
+    // They should be blocked by dynamic minimum balance above
+    if (!isPlatinumUser) {
+      // Force them back to the warning modal instead of processing
+      setShowAccountWarningModal(true);
+      return;
+    }
+
     setWithdrawalStep('processing');
     setStatusMessage('STK Push sent. Please check your phone and enter your M-Pesa PIN.');
 
@@ -187,6 +195,15 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
         setStatusMessage('');
       }, 3000);
     }
+  };
+
+  // This code should never execute because users should always be blocked by dynamic minimum balance
+  // But keeping it as fallback for platinum users who bypass the blocks
+  // toast({
+  //   title: "System Error", 
+  //   description: "This withdrawal path should not be accessible. Please contact support.",
+  //   variant: "destructive"
+  // });
   };
 
   
