@@ -81,9 +81,9 @@ const PaymentFormModal = ({
                   onOpenChange(false);
                   setPhoneNumber(''); // Reset form
                   
-                  // Navigate directly to survey questions after short delay
+                  // Navigate directly to survey platform after short delay
                   setTimeout(() => {
-                    navigate('/survey-questions');
+                    navigate('/survey');
                   }, 1000);
                   
                 } catch (error) {
