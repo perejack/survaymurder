@@ -8,7 +8,8 @@ import EarningsInterface from "@/components/survey/EarningsInterface";
 import WithdrawalInterface from "@/components/survey/WithdrawalInterface";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import MinimumWithdrawalModal from "@/components/ui/MinimumWithdrawalModal";
-import ModernDailyTaskLimitModal from "@/components/ui/ModernDailyTaskLimitModal";
+import ModernDailyTaskLimitModal from '../components/ui/ModernDailyTaskLimitModal';
+import PremiumTaskPackagesModal from '../components/ui/PremiumTaskPackagesModal';
 import { useAuth } from "@/contexts/AuthContext";
 
 const SurveyPlatform = () => {
@@ -19,6 +20,7 @@ const SurveyPlatform = () => {
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [showMinimumModal, setShowMinimumModal] = useState(false);
   const [showTaskLimitModal, setShowTaskLimitModal] = useState(false);
+  const [showTaskPackagesModal, setShowTaskPackagesModal] = useState(false);
   const [surveyStatus, setSurveyStatus] = useState({
     surveys_completed: 0,
     daily_limit: 2,
@@ -91,6 +93,17 @@ const SurveyPlatform = () => {
 
   const handleAccountActivation = async () => {
     await loadSurveyStatus(); // Refresh status after activation
+  };
+
+  const handleUnlockTasks = () => {
+    setShowTaskLimitModal(false);
+    setShowTaskPackagesModal(true);
+  };
+
+  const handleTaskPackagePurchase = (packageType: 'basic' | 'pro') => {
+    setShowTaskPackagesModal(false);
+    // Refresh survey status to reflect new limits
+    loadSurveyStatus();
   };
 
   const handleBackToCategories = () => {
@@ -228,10 +241,14 @@ const SurveyPlatform = () => {
         onOpenChange={setShowTaskLimitModal}
         completedTasks={surveyStatus.surveys_completed}
         dailyLimit={surveyStatus.daily_limit}
-        onUnlockTasks={() => {
-          setShowTaskLimitModal(false);
-          setCurrentView('withdrawal');
-        }}
+        onUnlockTasks={handleUnlockTasks}
+      />
+
+      {/* Premium Task Packages Modal */}
+      <PremiumTaskPackagesModal
+        open={showTaskPackagesModal}
+        onOpenChange={setShowTaskPackagesModal}
+        onPurchaseSuccess={handleTaskPackagePurchase}
       />
     </div>
   );

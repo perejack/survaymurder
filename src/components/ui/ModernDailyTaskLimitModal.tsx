@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Dialog, DialogContent, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,30 +20,6 @@ const ModernDailyTaskLimitModal = ({
   completedTasks,
   dailyLimit
 }: ModernDailyTaskLimitModalProps) => {
-  const [timeLeft, setTimeLeft] = useState({
-    hours: 11,
-    minutes: 25,
-    seconds: 31
-  });
-
-  useEffect(() => {
-    if (!open) return;
-
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev.seconds > 0) {
-          return { ...prev, seconds: prev.seconds - 1 };
-        } else if (prev.minutes > 0) {
-          return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
-        } else if (prev.hours > 0) {
-          return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        }
-        return prev;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -61,7 +37,7 @@ const ModernDailyTaskLimitModal = ({
           <div className="relative z-10 text-center p-6 pb-4">
             <div className="flex justify-center mb-4">
               <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-full p-4 shadow-lg animate-bounce">
-                <Trophy className="w-8 h-8 text-white" />
+                <CheckCircle className="w-8 h-8 text-white" />
               </div>
             </div>
             <h2 className="text-xl font-bold text-gray-800 mb-2">
@@ -74,38 +50,16 @@ const ModernDailyTaskLimitModal = ({
 
           {/* Content */}
           <div className="relative z-10 px-6 pb-6">
-            {/* Countdown Timer */}
-            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 mb-4 border-2 border-blue-200 shadow-lg">
+            {/* 24 Hour Reload Message */}
+            <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 mb-4 border-2 border-blue-200 shadow-lg">
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-3">
-                  <Clock className="w-5 h-5 text-blue-600" />
-                  <span className="text-sm font-semibold text-blue-800">Tasks Reload In:</span>
+                  <Clock className="w-6 h-6 text-blue-600" />
+                  <span className="text-lg font-bold text-blue-800">Tasks Reload In:</span>
                 </div>
-                
-                <div className="flex justify-center gap-4 mb-3">
-                  <div className="text-center">
-                    <div className="bg-white rounded-lg p-2 shadow-md min-w-[50px]">
-                      <div className="text-2xl font-bold text-blue-600">{timeLeft.hours.toString().padStart(2, '0')}</div>
-                    </div>
-                    <div className="text-xs text-blue-600 mt-1 font-medium">Hours</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="bg-white rounded-lg p-2 shadow-md min-w-[50px]">
-                      <div className="text-2xl font-bold text-blue-600">{timeLeft.minutes.toString().padStart(2, '0')}</div>
-                    </div>
-                    <div className="text-xs text-blue-600 mt-1 font-medium">Minutes</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="bg-white rounded-lg p-2 shadow-md min-w-[50px]">
-                      <div className="text-2xl font-bold text-blue-600">{timeLeft.seconds.toString().padStart(2, '0')}</div>
-                    </div>
-                    <div className="text-xs text-blue-600 mt-1 font-medium">Seconds</div>
-                  </div>
-                </div>
-                
-                <p className="text-xs text-blue-700">
-                  Your tasks will automatically reload within 24 hours
-                </p>
+                <div className="text-4xl font-bold text-blue-600 mb-2">24 Hours</div>
+                <p className="text-gray-700 font-medium">Tasks will reload in 24 hours</p>
+                <p className="text-sm text-gray-500 mt-2">Come back tomorrow for more earning opportunities!</p>
               </div>
             </Card>
 
@@ -116,66 +70,61 @@ const ModernDailyTaskLimitModal = ({
                   <CheckCircle className="w-5 h-5 text-green-600" />
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-semibold text-green-800">Today's Progress</span>
-                    <Badge className="bg-green-500 text-white">Complete</Badge>
-                  </div>
-                  <p className="text-xs text-green-700">{Math.min(completedTasks, 2)}/2 surveys completed</p>
+                  <div className="font-semibold text-green-800">Today's Progress</div>
+                  <div className="text-sm text-green-600">{completedTasks}/{dailyLimit} surveys completed</div>
+                </div>
+                <Badge className="bg-green-100 text-green-800 border-green-300">
+                  Complete
+                </Badge>
+              </div>
+            </Card>
+
+            {/* Benefits Section */}
+            <Card className="bg-gradient-to-r from-orange-50 to-yellow-50 p-4 mb-4 border-2 border-orange-200">
+              <div className="text-center mb-4">
+                <Package className="w-8 h-8 text-orange-600 mx-auto mb-2" />
+                <h3 className="font-bold text-gray-800 mb-2">Want More Tasks?</h3>
+                <p className="text-sm text-gray-600 mb-3">Unlock additional earning opportunities!</p>
+              </div>
+              
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2 text-green-700">
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Earn up to 5,000 KSH daily</span>
+                </div>
+                <div className="flex items-center gap-2 text-green-700">
+                  <CheckCircle className="w-4 h-4" />
+                  <span>No withdrawal limits</span>
+                </div>
+                <div className="flex items-center gap-2 text-green-700">
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Instant M-Pesa withdrawals</span>
+                </div>
+                <div className="flex items-center gap-2 text-green-700">
+                  <CheckCircle className="w-4 h-4" />
+                  <span>250 KSH per task completed</span>
                 </div>
               </div>
             </Card>
 
-            {/* Unlock More Tasks Card */}
-            <Card className="bg-gradient-to-r from-orange-50 to-yellow-50 p-4 mb-6 border-2 border-orange-200 shadow-lg hover:shadow-xl transition-all duration-300">
-              <div className="text-center">
-                <div className="flex justify-center mb-3">
-                  <div className="bg-gradient-to-r from-orange-400 to-yellow-500 rounded-full p-3 shadow-lg animate-pulse">
-                    <Package className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-                
-                <h3 className="font-bold text-orange-800 mb-2">Want More Tasks?</h3>
-                <p className="text-sm text-muted-foreground mb-6">
-                  You've completed {completedTasks}/{dailyLimit} daily surveys. Come back tomorrow for more earning opportunities or unlock additional tasks now!
-                </p>
-                
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <div className="bg-white/60 rounded-lg p-3 border border-orange-200">
-                    <div className="text-center">
-                      <div className="font-semibold text-orange-800">Basic Pack</div>
-                      <div className="text-xs text-orange-600">10 tasks • KSh 250</div>
-                    </div>
-                  </div>
-                  <div className="bg-white/60 rounded-lg p-3 border border-orange-200">
-                    <div className="text-center">
-                      <div className="font-semibold text-orange-800">Pro Pack</div>
-                      <div className="text-xs text-orange-600">20 tasks • KSh 350</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            {/* Action Buttons */}
+            {/* Unlock Button */}
             <div className="space-y-3">
-              <Button
+              <Button 
                 onClick={onUnlockTasks}
-                size="lg"
-                className="w-full bg-gradient-to-r from-orange-500 to-yellow-600 hover:from-orange-600 hover:to-yellow-700 text-white font-semibold py-4 text-base shadow-lg hover:shadow-xl transition-all duration-300 animate-pulse"
+                className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-4 px-6 rounded-2xl shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl"
               >
-                <Zap className="w-5 h-5 mr-2" />
-                Unlock More Tasks
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <div className="flex items-center justify-center gap-2">
+                  <Zap className="w-5 h-5" />
+                  <span>Unlock More Tasks</span>
+                  <ArrowRight className="w-4 h-4" />
+                </div>
               </Button>
               
-              <Button
-                onClick={() => onOpenChange(false)}
-                variant="outline"
-                size="lg"
-                className="w-full border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold py-4 text-base"
-              >
-                Wait for Reload
-              </Button>
+              <div className="text-center">
+                <p className="text-xs text-gray-500">
+                  Or wait 24 hours for tasks to reload
+                </p>
+              </div>
             </div>
 
             {/* Footer message */}
