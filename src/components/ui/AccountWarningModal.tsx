@@ -66,7 +66,7 @@ const AccountWarningModal = ({
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-red-600" />
                   <p className="text-sm font-semibold text-red-800">
-                    Below minimum required balance of KSh 350
+                    Below minimum required balance of KSh {Math.max(350, Math.floor(currentBalance * 0.3)).toLocaleString()}
                   </p>
                 </div>
               </div>

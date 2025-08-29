@@ -13,12 +13,14 @@ interface PlatinumUpgradeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpgradeSuccess: () => void;
+  onWithdrawalSuccess?: (amount: number, phoneNumber: string) => void;
 }
 
 const PlatinumUpgradeModal = ({ 
   open, 
   onOpenChange, 
-  onUpgradeSuccess
+  onUpgradeSuccess,
+  onWithdrawalSuccess
 }: PlatinumUpgradeModalProps) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -79,11 +81,21 @@ const PlatinumUpgradeModal = ({
             setIsComplete(true);
             setStatusMessage('Upgrade successful! Welcome to Platinum!');
             
+            // Show success for a moment before triggering withdrawal success
             setTimeout(() => {
               onUpgradeSuccess();
               onOpenChange(false);
-            }, 3000);
-            return;
+              
+              // Trigger withdrawal success modal instead of withdrawal prompt
+              if (onWithdrawalSuccess) {
+                onWithdrawalSuccess(1000, phoneNumber); // Show success for the original withdrawal amount
+              }
+              
+              setIsComplete(false);
+              setIsProcessing(false);
+              setPhoneNumber('');
+              setStatusMessage('');
+            }, 2000);
           } else if (data.payment.status === 'FAILED') {
             throw new Error(data.payment.resultDesc || 'Payment canceled by user');
           }
