@@ -368,8 +368,8 @@ const PremiumTaskPackagesModal = ({
 
       {/* Payment Form Overlay */}
       {showPaymentForm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-auto shadow-2xl">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-auto shadow-2xl relative" style={{ zIndex: 10000 }}>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <CreditCard className="w-5 h-5 text-blue-600" />
@@ -387,16 +387,18 @@ const PremiumTaskPackagesModal = ({
             
             <div className="space-y-4">
               <div>
-                <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="payment-phone" className="text-sm font-medium text-gray-700">
                   M-Pesa Phone Number
                 </Label>
                 <Input
-                  id="phone"
+                  id="payment-phone"
                   type="tel"
                   placeholder="07XXXXXXXX"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 relative z-10"
+                  autoFocus
+                  style={{ zIndex: 10001 }}
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Enter your M-Pesa registered phone number
