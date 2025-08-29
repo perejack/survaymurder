@@ -4,6 +4,7 @@
 -- =====================================================
 
 -- First, drop existing tables if they exist (for clean setup)
+DROP TABLE IF EXISTS public.earning_transactions CASCADE;
 DROP TABLE IF EXISTS public.daily_survey_completions CASCADE;
 DROP TABLE IF EXISTS public.user_survey_responses CASCADE;
 DROP TABLE IF EXISTS public.surveys CASCADE;
@@ -11,10 +12,12 @@ DROP TABLE IF EXISTS public.user_profiles CASCADE;
 
 -- Drop existing trigger first, then functions
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-DROP FUNCTION IF EXISTS public.get_daily_survey_completion(UUID);
-DROP FUNCTION IF EXISTS public.increment_survey_completion(UUID);
+DROP FUNCTION IF EXISTS public.get_daily_survey_status(UUID);
+DROP FUNCTION IF EXISTS public.complete_survey(UUID, TEXT);
 DROP FUNCTION IF EXISTS public.activate_user_account(UUID);
+DROP FUNCTION IF EXISTS public.upgrade_to_platinum(UUID);
 DROP FUNCTION IF EXISTS public.purchase_task_package(UUID, TEXT);
+DROP FUNCTION IF EXISTS public.get_current_user_balance();
 DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
 
 -- =====================================================
@@ -76,12 +79,25 @@ CREATE TABLE public.daily_survey_completions (
 );
 
 -- =====================================================
--- 5. ENABLE ROW LEVEL SECURITY
+-- 5. EARNING TRANSACTIONS TABLE (Balance Management)
+-- =====================================================
+CREATE TABLE public.earning_transactions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  amount DECIMAL(10,2) NOT NULL,
+  transaction_type TEXT NOT NULL CHECK (transaction_type IN ('bonus', 'survey', 'withdrawal', 'adjustment')),
+  description TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- =====================================================
+-- 6. ENABLE ROW LEVEL SECURITY
 -- =====================================================
 ALTER TABLE public.user_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.surveys ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_survey_responses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.daily_survey_completions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.earning_transactions ENABLE ROW LEVEL SECURITY;
 
 -- =====================================================
 -- 6. RLS POLICIES
@@ -117,6 +133,13 @@ CREATE POLICY "Users can insert own completions" ON public.daily_survey_completi
 
 CREATE POLICY "Users can update own completions" ON public.daily_survey_completions
   FOR UPDATE USING (auth.uid() = user_id);
+
+-- Earning Transactions Policies
+CREATE POLICY "Users can view own transactions" ON public.earning_transactions
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own transactions" ON public.earning_transactions
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- =====================================================
 -- 7. CORE BUSINESS LOGIC FUNCTIONS
@@ -288,7 +311,26 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- =====================================================
--- 9. INSERT SAMPLE SURVEYS
+-- 9. BALANCE CALCULATION FUNCTION
+-- =====================================================
+CREATE OR REPLACE FUNCTION public.get_current_user_balance()
+RETURNS DECIMAL(10,2) AS $$
+BEGIN
+  RETURN COALESCE((
+    SELECT SUM(
+      CASE 
+        WHEN transaction_type = 'withdrawal' THEN -amount
+        ELSE amount
+      END
+    )
+    FROM public.earning_transactions
+    WHERE user_id = auth.uid()
+  ), 0);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- =====================================================
+-- 10. INSERT SAMPLE SURVEYS
 -- =====================================================
 INSERT INTO public.surveys (title, description, category, reward_amount) VALUES
 ('Consumer Preferences Survey', 'Share your shopping habits and preferences', 'shopping', 150.00),
@@ -301,7 +343,7 @@ INSERT INTO public.surveys (title, description, category, reward_amount) VALUES
 ('Social Media Survey', 'Tell us about your social media usage', 'social', 150.00);
 
 -- =====================================================
--- 10. GRANT NECESSARY PERMISSIONS
+-- 11. GRANT NECESSARY PERMISSIONS
 -- =====================================================
 GRANT USAGE ON SCHEMA public TO anon, authenticated;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated;

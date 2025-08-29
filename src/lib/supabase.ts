@@ -142,6 +142,32 @@ export type Database = {
           updated_at?: string
         }
       }
+      earning_transactions: {
+        Row: {
+          id: string
+          user_id: string
+          amount: number
+          transaction_type: string
+          description: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          amount: number
+          transaction_type: string
+          description?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          amount?: number
+          transaction_type?: string
+          description?: string | null
+          created_at?: string
+        }
+      }
     }
     Functions: {
       get_daily_survey_status: {
@@ -175,6 +201,10 @@ export type Database = {
       purchase_task_package: {
         Args: { user_uuid: string; package_type: string }
         Returns: boolean
+      }
+      get_current_user_balance: {
+        Args: {}
+        Returns: number
       }
     }
   }
