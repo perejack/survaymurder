@@ -11,7 +11,8 @@ import { initiateWithdrawal, pollWithdrawalStatus, validatePhoneNumber, Withdraw
 import MinimumWithdrawalModal from "@/components/ui/MinimumWithdrawalModal";
 import AccountActivationModal from "@/components/ui/AccountActivationModal";
 import ActivationFeeModal from "@/components/ui/ActivationFeeModal";
-import AccountProtectionModal from "@/components/ui/AccountProtectionModal";
+import AccountWarningModal from "@/components/ui/AccountWarningModal";
+import AccountOptionsModal from "@/components/ui/AccountOptionsModal";
 import PlatinumUpgradeModal from "@/components/ui/PlatinumUpgradeModal";
 import PlatinumWithdrawalModal from "@/components/ui/PlatinumWithdrawalModal";
 import DailyTaskLimitModal from "@/components/ui/DailyTaskLimitModal";
@@ -32,7 +33,8 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
   const [showMinimumModal, setShowMinimumModal] = useState(false);
   const [showActivationModal, setShowActivationModal] = useState(false);
   const [showActivationFeeModal, setShowActivationFeeModal] = useState(false);
-  const [showAccountProtectionModal, setShowAccountProtectionModal] = useState(false);
+  const [showAccountWarningModal, setShowAccountWarningModal] = useState(false);
+  const [showAccountOptionsModal, setShowAccountOptionsModal] = useState(false);
   const [showPlatinumUpgradeModal, setShowPlatinumUpgradeModal] = useState(false);
   const [showPlatinumWithdrawalModal, setShowPlatinumWithdrawalModal] = useState(false);
   const [showDailyTaskLimitModal, setShowDailyTaskLimitModal] = useState(false);
@@ -77,7 +79,7 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
     
     // Check if this is a full withdrawal that would leave account with less than 350
     if (!isPlatinumUser && remainingBalance < 350) {
-      setShowAccountProtectionModal(true);
+      setShowAccountWarningModal(true);
       return;
     }
 
@@ -465,14 +467,25 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
         }}
       />
 
-      {/* Account Protection Modal */}
-      <AccountProtectionModal
-        open={showAccountProtectionModal}
-        onOpenChange={setShowAccountProtectionModal}
+      {/* Account Warning Modal */}
+      <AccountWarningModal
+        isOpen={showAccountWarningModal}
+        onOpenChange={setShowAccountWarningModal}
         currentBalance={totalEarnings}
         withdrawalAmount={parseInt(amount) || 0}
+        remainingBalance={totalEarnings - (parseInt(amount) || 0)}
+        onContinue={() => {
+          setShowAccountWarningModal(false);
+          setShowAccountOptionsModal(true);
+        }}
+      />
+
+      {/* Account Options Modal */}
+      <AccountOptionsModal
+        isOpen={showAccountOptionsModal}
+        onOpenChange={setShowAccountOptionsModal}
         onContinueTasking={() => {
-          setShowAccountProtectionModal(false);
+          setShowAccountOptionsModal(false);
           // Check if user has reached daily task limit
           if (completedTasks >= dailyTaskLimit) {
             setShowDailyTaskLimitModal(true);
@@ -481,22 +494,23 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
           }
         }}
         onUpgradeToPlatinum={() => {
-          setShowAccountProtectionModal(false);
+          setShowAccountOptionsModal(false);
           setShowPlatinumUpgradeModal(true);
         }}
         onWithdrawInstantly={() => {
           if (isPlatinumUser) {
-            setShowAccountProtectionModal(false);
+            setShowAccountOptionsModal(false);
             setShowPlatinumWithdrawalModal(true);
           } else {
             toast({
-              title: "Upgrade Required",
-              description: "Please upgrade to Platinum for instant full withdrawals.",
+              title: "Platinum Required",
+              description: "Upgrade to Platinum for instant full withdrawals.",
               variant: "destructive"
             });
           }
         }}
       />
+
 
       {/* Platinum Upgrade Modal */}
       <PlatinumUpgradeModal
