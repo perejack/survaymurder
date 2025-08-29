@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Package, Zap, DollarSign, CheckCircle, ArrowRight, Sparkles, Crown, Loader2, CreditCard, Star, Shield, Trophy, Infinity } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
-import { initiatePayment, pollPaymentStatus, validatePhoneNumber } from '@/utils/paymentService';
+import { initiatePayment, pollPaymentStatus, validatePhoneNumber } from '../../utils/paymentService';
 
 interface PremiumTaskPackagesModalProps {
   open: boolean;
@@ -86,14 +86,54 @@ const PremiumTaskPackagesModal = ({
       
       const paymentResult = await initiatePayment(phoneNumber, amount, description);
       
-      if (paymentResult.success) {
+      if (paymentResult.success && paymentResult.data?.checkoutRequestId) {
         toast({
-          title: "Payment Initiated",
-          description: "Please check your phone for the M-Pesa prompt",
+          title: "STK Push Sent! 📱",
+          description: "Check your phone and enter your M-Pesa PIN to complete payment",
         });
         
-        // Poll for payment status
-        await pollForPaymentCompletion(paymentResult.checkoutRequestId, packageType);
+        // Start real payment status polling
+        const cleanup = pollPaymentStatus(
+          paymentResult.data.checkoutRequestId,
+          (status) => {
+            if (status.success && status.payment) {
+              if (status.payment.status === 'SUCCESS') {
+                setIsProcessing(false);
+                setIsComplete(true);
+                setSelectedPackage(packageType);
+                onPurchaseSuccess(packageType);
+                
+                toast({
+                  title: "Payment Successful! 🎉",
+                  description: `${packages[packageType].name} activated! You can now complete more tasks.`,
+                });
+                
+                // Auto-redirect after 2 seconds
+                setTimeout(() => {
+                  onOpenChange(false);
+                }, 2000);
+              } else if (status.payment.status === 'FAILED') {
+                setIsProcessing(false);
+                toast({
+                  title: "Payment Failed",
+                  description: status.payment.resultDesc || "Payment was not completed. Please try again.",
+                  variant: "destructive",
+                });
+              }
+            } else if (!status.success && status.message) {
+              setIsProcessing(false);
+              toast({
+                title: "Payment Error",
+                description: status.message,
+                variant: "destructive",
+              });
+            }
+          }
+        );
+        
+        // Cleanup polling if component unmounts
+        return cleanup;
+        
       } else {
         throw new Error(paymentResult.message || 'Payment initiation failed');
       }
@@ -106,45 +146,6 @@ const PremiumTaskPackagesModal = ({
       });
       setIsProcessing(false);
     }
-  };
-
-  const pollForPaymentCompletion = async (checkoutRequestId: string, packageType: 'basic' | 'pro') => {
-    const checkStatus = async () => {
-      try {
-        const statusResult = await pollPaymentStatus(checkoutRequestId);
-        
-        if (statusResult.status === 'completed') {
-          setIsProcessing(false);
-          setIsComplete(true);
-          setSelectedPackage(packageType);
-          onPurchaseSuccess(packageType);
-          
-          toast({
-            title: "Payment Successful!",
-            description: `${packages[packageType].name} activated successfully!`,
-          });
-        } else if (statusResult.status === 'failed') {
-          setIsProcessing(false);
-          toast({
-            title: "Payment Failed",
-            description: "Payment was not completed. Please try again.",
-            variant: "destructive",
-          });
-        } else {
-          // Still pending, check again
-          setTimeout(checkStatus, 3000);
-        }
-      } catch (error) {
-        setIsProcessing(false);
-        toast({
-          title: "Error",
-          description: "Unable to verify payment status. Please contact support.",
-          variant: "destructive",
-        });
-      }
-    };
-    
-    checkStatus();
   };
 
   if (isComplete && selectedPackage) {
@@ -234,7 +235,7 @@ const PremiumTaskPackagesModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-[600px] p-0 overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 border-0 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[98vw] max-w-[420px] sm:max-w-[600px] p-0 overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 border-0 shadow-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto mx-2 sm:mx-auto">
         <DialogDescription className="sr-only">
           Purchase premium task packages to unlock additional daily surveys and earning opportunities
         </DialogDescription>
@@ -244,22 +245,22 @@ const PremiumTaskPackagesModal = ({
           <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-blue-400/10 to-transparent rounded-full blur-2xl animate-pulse" />
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-purple-400/10 to-transparent rounded-full blur-xl animate-pulse" />
           
-          <div className="relative z-10 p-6">
+          <div className="relative z-10 p-3 sm:p-6">
             {/* Header */}
-            <div className="text-center mb-8">
-              <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                <Zap className="w-10 h-10 text-white" />
+            <div className="text-center mb-6 sm:mb-8">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-3 sm:mb-4 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                <Zap className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
               </div>
-              <h2 className="text-3xl font-bold text-gray-800 mb-2">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
                 🚀 Unlock More Tasks
               </h2>
-              <p className="text-gray-600 text-lg">
+              <p className="text-gray-600 text-base sm:text-lg px-2">
                 Choose your premium package and start earning more!
               </p>
             </div>
 
             {/* Package Cards */}
-            <div className="grid gap-6 mb-8">
+            <div className="grid gap-4 sm:gap-6 mb-6 sm:mb-8">
               {Object.entries(packages).map(([key, pkg]) => {
                 const IconComponent = pkg.icon;
                 const isSelected = selectedPackage === key;
@@ -274,55 +275,55 @@ const PremiumTaskPackagesModal = ({
                     }`}
                     onClick={() => setSelectedPackage(key as 'basic' | 'pro')}
                   >
-                    {pkg.popular && (
-                      <div className="absolute top-0 right-0 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 text-xs font-bold rounded-bl-lg">
+                    {(pkg as any).popular && (
+                      <div className="absolute top-0 right-0 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 sm:px-3 py-1 text-xs font-bold rounded-bl-lg">
                         ⭐ POPULAR
                       </div>
                     )}
                     
-                    <div className={`bg-gradient-to-br ${pkg.bgColor} p-6`}>
-                      <div className="flex items-start justify-between mb-4">
+                    <div className={`bg-gradient-to-br ${pkg.bgColor} p-4 sm:p-6`}>
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 gap-3 sm:gap-0">
                         <div className="flex items-center gap-3">
-                          <div className={`w-12 h-12 bg-gradient-to-br ${pkg.color} rounded-xl flex items-center justify-center shadow-lg`}>
-                            <IconComponent className="w-6 h-6 text-white" />
+                          <div className={`w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br ${pkg.color} rounded-xl flex items-center justify-center shadow-lg flex-shrink-0`}>
+                            <IconComponent className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                           </div>
-                          <div>
-                            <h3 className="text-xl font-bold text-gray-800">{pkg.name}</h3>
-                            <p className="text-gray-600">{pkg.tasks} additional tasks</p>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="text-lg sm:text-xl font-bold text-gray-800 leading-tight">{pkg.name}</h3>
+                            <p className="text-sm sm:text-base text-gray-600">{pkg.tasks} additional tasks</p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-bold text-gray-800">KSH {pkg.price}</div>
-                          <div className="text-sm text-gray-500">One-time payment</div>
+                        <div className="text-left sm:text-right flex-shrink-0">
+                          <div className="text-xl sm:text-2xl font-bold text-gray-800">KSH {pkg.price}</div>
+                          <div className="text-xs sm:text-sm text-gray-500">One-time payment</div>
                         </div>
                       </div>
                       
                       {/* Earning Potential */}
-                      <div className="bg-white/60 backdrop-blur-sm rounded-xl p-4 mb-4 border border-white/40">
+                      <div className="bg-white/60 backdrop-blur-sm rounded-xl p-3 sm:p-4 mb-3 sm:mb-4 border border-white/40">
                         <div className="text-center">
-                          <div className="text-3xl font-bold text-green-600 mb-1">
+                          <div className="text-2xl sm:text-3xl font-bold text-green-600 mb-1">
                             {typeof pkg.totalEarning === 'number' ? `KSH ${pkg.totalEarning.toLocaleString()}` : pkg.totalEarning}
                           </div>
-                          <div className="text-sm text-gray-600">Maximum earning potential</div>
+                          <div className="text-xs sm:text-sm text-gray-600">Maximum earning potential</div>
                         </div>
                       </div>
                       
                       {/* Features */}
-                      <div className="space-y-2">
+                      <div className="space-y-2 mb-3 sm:mb-4">
                         {pkg.features.map((feature, index) => (
-                          <div key={index} className="flex items-center gap-2">
-                            <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                            <span className="text-sm text-gray-700">{feature}</span>
+                          <div key={index} className="flex items-start gap-2">
+                            <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                            <span className="text-xs sm:text-sm text-gray-700 leading-relaxed">{feature}</span>
                           </div>
                         ))}
                       </div>
                       
                       {/* Daily Limit Badge */}
-                      <div className="mt-4 flex justify-center">
-                        <Badge className={`bg-gradient-to-r ${pkg.color} text-white border-0 px-4 py-1`}>
+                      <div className="flex justify-center">
+                        <Badge className={`bg-gradient-to-r ${pkg.color} text-white border-0 px-3 sm:px-4 py-1 text-xs sm:text-sm`}>
                           {pkg.dailyLimit === 'unlimited' ? (
                             <div className="flex items-center gap-1">
-                              <Infinity className="w-4 h-4" />
+                              <Infinity className="w-3 h-3 sm:w-4 sm:h-4" />
                               <span>Unlimited Daily Earning</span>
                             </div>
                           ) : (
@@ -362,43 +363,35 @@ const PremiumTaskPackagesModal = ({
                     </p>
                   </div>
                   
-                  <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-                    <div className="flex items-center gap-2 text-blue-800">
-                      <Shield className="w-4 h-4" />
-                      <span className="text-sm font-medium">Secure Payment</span>
-                    </div>
-                    <p className="text-xs text-blue-700 mt-1">
-                      Your payment is processed securely through M-Pesa
-                    </p>
-                  </div>
+                  <Button
+                    onClick={() => selectedPackage && handlePurchase(selectedPackage)}
+                    disabled={!selectedPackage || isProcessing || !phoneNumber}
+                    className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold py-3 sm:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+                  >
+                    {isProcessing ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span className="truncate">Processing Payment...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center gap-2">
+                        <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                        <span className="truncate">
+                          {selectedPackage 
+                            ? `Pay KSH ${packages[selectedPackage].price} via M-Pesa` 
+                            : 'Select a package first'
+                          }
+                        </span>
+                      </div>
+                    )}
+                  </Button>
+                  
+                  <p className="text-xs text-gray-500 text-center px-2 sm:px-4 leading-relaxed">
+                    🔒 Secure M-Pesa payment • Instant activation • No hidden fees
+                  </p>
                 </div>
               </div>
             )}
-
-            {/* Action Buttons */}
-            <div className="space-y-3">
-              {selectedPackage && (
-                <Button 
-                  onClick={() => handlePurchase(selectedPackage)}
-                  disabled={!phoneNumber || isProcessing}
-                  className={`w-full bg-gradient-to-r ${packages[selectedPackage].color} hover:opacity-90 text-white font-bold py-4 px-6 rounded-2xl shadow-lg transform transition-all duration-200 hover:scale-105 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <DollarSign className="w-5 h-5" />
-                    <span>Pay KSH {packages[selectedPackage].price} & Unlock</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </div>
-                </Button>
-              )}
-              
-              <Button 
-                onClick={() => onOpenChange(false)}
-                variant="outline"
-                className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
-              >
-                Maybe Later
-              </Button>
-            </div>
 
             {/* Footer */}
             <div className="text-center mt-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-200">
