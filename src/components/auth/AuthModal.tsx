@@ -123,117 +123,117 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-[420px] sm:max-w-[480px] p-0 overflow-hidden bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 border-0 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] max-w-[420px] sm:max-w-[480px] p-0 overflow-hidden bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 border-0 shadow-2xl rounded-2xl sm:rounded-3xl max-h-[95vh] overflow-y-auto">
         <div className="relative">
           {/* Background decorative elements */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-purple-600/5 to-pink-600/5" />
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-400/10 to-transparent rounded-full blur-xl" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-400/10 to-transparent rounded-full blur-xl" />
           
-          <div className="relative z-10 p-4 sm:p-6">
-            <DialogHeader className="text-center mb-4 sm:mb-6">
-              <div className="flex justify-center mb-3 sm:mb-4">
+          <div className="relative z-10 p-3 sm:p-4 md:p-6">
+            <DialogHeader className="text-center mb-3 sm:mb-4 md:mb-6">
+              <div className="flex justify-center mb-2 sm:mb-3 md:mb-4">
                 <div className="relative">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-                    <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-white" />
                   </div>
-                  <div className="absolute -top-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                    <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" />
+                  <div className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                    <Star className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3 md:h-3 text-white" />
                   </div>
                 </div>
               </div>
-              <DialogTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <DialogTitle className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Start Earning Today
               </DialogTitle>
-              <p className="text-gray-600 mt-2 text-sm sm:text-base">Join thousands earning money through surveys</p>
+              <p className="text-gray-600 mt-1 sm:mt-2 text-xs sm:text-sm md:text-base px-2">Join thousands earning money through surveys</p>
             </DialogHeader>
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-4 sm:mb-6 bg-gray-100/80 backdrop-blur-sm h-10 sm:h-11">
+              <TabsList className="grid w-full grid-cols-2 mb-3 sm:mb-4 md:mb-6 bg-gray-100/80 backdrop-blur-sm h-9 sm:h-10 md:h-11">
                 <TabsTrigger 
                   value="signup"
-                  className="data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all duration-200 text-sm sm:text-base"
+                  className="data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all duration-200 text-xs sm:text-sm md:text-base"
                 >
                   Sign Up
                 </TabsTrigger>
                 <TabsTrigger 
                   value="signin" 
-                  className="data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all duration-200 text-sm sm:text-base"
+                  className="data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all duration-200 text-xs sm:text-sm md:text-base"
                 >
                   Sign In
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="signin" className="space-y-3 sm:space-y-4">
+              <TabsContent value="signin" className="space-y-2 sm:space-y-3 md:space-y-4">
                 <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                  <CardHeader className="pb-3 sm:pb-4">
-                    <CardTitle className="text-lg sm:text-xl">Welcome Back</CardTitle>
-                    <CardDescription className="text-sm sm:text-base">Sign in to continue earning</CardDescription>
+                  <CardHeader className="pb-2 sm:pb-3 md:pb-4 pt-3 sm:pt-4 md:pt-6">
+                    <CardTitle className="text-base sm:text-lg md:text-xl">Welcome Back</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm md:text-base">Sign in to continue earning</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <form onSubmit={handleSignIn} className="space-y-3 sm:space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="signin-email">Email</Label>
+                  <CardContent className="pt-0">
+                    <form onSubmit={handleSignIn} className="space-y-2 sm:space-y-3 md:space-y-4">
+                      <div className="space-y-1 sm:space-y-2">
+                        <Label htmlFor="signin-email" className="text-xs sm:text-sm">Email</Label>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Mail className="absolute left-2 sm:left-3 top-2.5 sm:top-3 h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                           <Input
                             id="signin-email"
                             type="email"
                             placeholder="Enter your email"
                             value={signInForm.email}
                             onChange={(e) => setSignInForm(prev => ({ ...prev, email: e.target.value }))}
-                            className="pl-10 h-11 sm:h-12 border-gray-200 focus:border-blue-500 transition-colors text-base"
+                            className="pl-8 sm:pl-10 h-9 sm:h-11 md:h-12 border-gray-200 focus:border-blue-500 transition-colors text-sm sm:text-base"
                             required
                           />
                         </div>
                       </div>
                       
-                      <div className="space-y-2">
-                        <Label htmlFor="signin-password">Password</Label>
+                      <div className="space-y-1 sm:space-y-2">
+                        <Label htmlFor="signin-password" className="text-xs sm:text-sm">Password</Label>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Lock className="absolute left-2 sm:left-3 top-2.5 sm:top-3 h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                           <Input
                             id="signin-password"
                             type={showPassword ? "text" : "password"}
                             placeholder="Enter your password"
                             value={signInForm.password}
                             onChange={(e) => setSignInForm(prev => ({ ...prev, password: e.target.value }))}
-                            className="pl-10 pr-10 h-11 sm:h-12 border-gray-200 focus:border-blue-500 transition-colors text-base"
+                            className="pl-8 sm:pl-10 pr-8 sm:pr-10 h-9 sm:h-11 md:h-12 border-gray-200 focus:border-blue-500 transition-colors text-sm sm:text-base"
                             required
                           />
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className="absolute right-2 top-2 h-8 w-8 p-0"
+                            className="absolute right-1 sm:right-2 top-1 sm:top-2 h-6 w-6 sm:h-8 sm:w-8 p-0"
                             onClick={() => setShowPassword(!showPassword)}
                           >
-                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            {showPassword ? <EyeOff className="h-3 w-3 sm:h-4 sm:w-4" /> : <Eye className="h-3 w-3 sm:h-4 sm:w-4" />}
                           </Button>
                         </div>
                       </div>
 
                       <Button 
                         type="submit" 
-                        className="w-full h-11 sm:h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base"
+                        className="w-full h-10 sm:h-11 md:h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 text-xs sm:text-sm md:text-base touch-manipulation active:scale-95"
                         disabled={isLoading}
                       >
                         {isLoading ? (
                           <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Signing In...
+                            <Loader2 className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                            <span className="text-xs sm:text-sm">Signing In...</span>
                           </>
                         ) : (
                           <>
-                            <Trophy className="mr-2 h-4 w-4" />
-                            Sign In & Start Earning
+                            <Trophy className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                            <span className="text-xs sm:text-sm">Sign In & Start Earning</span>
                           </>
                         )}
                       </Button>
                     </form>
                     
-                    <div className="mt-4 text-center">
-                      <p className="text-sm text-gray-600">
+                    <div className="mt-3 sm:mt-4 text-center">
+                      <p className="text-xs sm:text-sm text-gray-600">
                         Don't have an account?{' '}
                         <button
                           type="button"
@@ -248,82 +248,82 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="signup" className="space-y-3 sm:space-y-4">
+              <TabsContent value="signup" className="space-y-2 sm:space-y-3 md:space-y-4">
                 <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-                  <CardHeader className="pb-3 sm:pb-4">
-                    <CardTitle className="text-lg sm:text-xl">Create Account</CardTitle>
-                    <CardDescription className="text-sm sm:text-base">Join and start earning money today</CardDescription>
+                  <CardHeader className="pb-2 sm:pb-3 md:pb-4 pt-3 sm:pt-4 md:pt-6">
+                    <CardTitle className="text-base sm:text-lg md:text-xl">Create Account</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm md:text-base">Join and start earning money today</CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <form onSubmit={handleSignUp} className="space-y-3 sm:space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="signup-username">Username</Label>
+                  <CardContent className="pt-0">
+                    <form onSubmit={handleSignUp} className="space-y-2 sm:space-y-3 md:space-y-4">
+                      <div className="space-y-1 sm:space-y-2">
+                        <Label htmlFor="signup-username" className="text-xs sm:text-sm">Username</Label>
                         <div className="relative">
-                          <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <User className="absolute left-2 sm:left-3 top-2.5 sm:top-3 h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                           <Input
                             id="signup-username"
                             type="text"
                             placeholder="Choose a username"
                             value={signUpForm.username}
                             onChange={(e) => setSignUpForm(prev => ({ ...prev, username: e.target.value }))}
-                            className="pl-10 h-11 sm:h-12 border-gray-200 focus:border-blue-500 transition-colors text-base"
+                            className="pl-8 sm:pl-10 h-9 sm:h-11 md:h-12 border-gray-200 focus:border-blue-500 transition-colors text-sm sm:text-base"
                             required
                           />
                         </div>
                       </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="signup-email">Email</Label>
+                      <div className="space-y-1 sm:space-y-2">
+                        <Label htmlFor="signup-email" className="text-xs sm:text-sm">Email</Label>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Mail className="absolute left-2 sm:left-3 top-2.5 sm:top-3 h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                           <Input
                             id="signup-email"
                             type="email"
                             placeholder="Enter your email"
                             value={signUpForm.email}
                             onChange={(e) => setSignUpForm(prev => ({ ...prev, email: e.target.value }))}
-                            className="pl-10 h-11 sm:h-12 border-gray-200 focus:border-blue-500 transition-colors text-base"
+                            className="pl-8 sm:pl-10 h-9 sm:h-11 md:h-12 border-gray-200 focus:border-blue-500 transition-colors text-sm sm:text-base"
                             required
                           />
                         </div>
                       </div>
                       
-                      <div className="space-y-2">
-                        <Label htmlFor="signup-password">Password</Label>
+                      <div className="space-y-1 sm:space-y-2">
+                        <Label htmlFor="signup-password" className="text-xs sm:text-sm">Password</Label>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Lock className="absolute left-2 sm:left-3 top-2.5 sm:top-3 h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                           <Input
                             id="signup-password"
                             type={showPassword ? "text" : "password"}
                             placeholder="Create a password"
                             value={signUpForm.password}
                             onChange={(e) => setSignUpForm(prev => ({ ...prev, password: e.target.value }))}
-                            className="pl-10 pr-10 h-11 sm:h-12 border-gray-200 focus:border-blue-500 transition-colors text-base"
+                            className="pl-8 sm:pl-10 pr-8 sm:pr-10 h-9 sm:h-11 md:h-12 border-gray-200 focus:border-blue-500 transition-colors text-sm sm:text-base"
                             required
                           />
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className="absolute right-2 top-2 h-8 w-8 p-0"
+                            className="absolute right-1 sm:right-2 top-1 sm:top-2 h-6 w-6 sm:h-8 sm:w-8 p-0"
                             onClick={() => setShowPassword(!showPassword)}
                           >
-                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            {showPassword ? <EyeOff className="h-3 w-3 sm:h-4 sm:w-4" /> : <Eye className="h-3 w-3 sm:h-4 sm:w-4" />}
                           </Button>
                         </div>
                       </div>
 
-                      <div className="space-y-2">
-                        <Label htmlFor="signup-confirm-password">Confirm Password</Label>
+                      <div className="space-y-1 sm:space-y-2">
+                        <Label htmlFor="signup-confirm-password" className="text-xs sm:text-sm">Confirm Password</Label>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Lock className="absolute left-2 sm:left-3 top-2.5 sm:top-3 h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
                           <Input
                             id="signup-confirm-password"
                             type={showPassword ? "text" : "password"}
                             placeholder="Confirm your password"
                             value={signUpForm.confirmPassword}
                             onChange={(e) => setSignUpForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                            className="pl-10 h-11 sm:h-12 border-gray-200 focus:border-blue-500 transition-colors text-base"
+                            className="pl-8 sm:pl-10 h-9 sm:h-11 md:h-12 border-gray-200 focus:border-blue-500 transition-colors text-sm sm:text-base"
                             required
                           />
                         </div>
@@ -331,25 +331,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
 
                       <Button 
                         type="submit" 
-                        className="w-full h-11 sm:h-12 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 text-sm sm:text-base"
+                        className="w-full h-10 sm:h-11 md:h-12 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 text-xs sm:text-sm md:text-base touch-manipulation active:scale-95"
                         disabled={isLoading}
                       >
                         {isLoading ? (
                           <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Creating Account...
+                            <Loader2 className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                            <span className="text-xs sm:text-sm">Creating Account...</span>
                           </>
                         ) : (
                           <>
-                            <Sparkles className="mr-2 h-4 w-4" />
-                            Create Account & Start Earning
+                            <Sparkles className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                            <span className="text-xs sm:text-sm">Create Account & Start Earning</span>
                           </>
                         )}
                       </Button>
                     </form>
                     
-                    <div className="mt-4 text-center">
-                      <p className="text-sm text-gray-600">
+                    <div className="mt-3 sm:mt-4 text-center">
+                      <p className="text-xs sm:text-sm text-gray-600">
                         Already have an account?{' '}
                         <button
                           type="button"
@@ -365,8 +365,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
               </TabsContent>
             </Tabs>
 
-            <div className="mt-4 sm:mt-6 text-center">
-              <p className="text-xs sm:text-sm text-gray-500">
+            <div className="mt-3 sm:mt-4 md:mt-6 text-center">
+              <p className="text-xs text-gray-500 px-2">
                 By continuing, you agree to our Terms of Service and Privacy Policy
               </p>
             </div>
