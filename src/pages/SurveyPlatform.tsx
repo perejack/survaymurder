@@ -16,7 +16,7 @@ const SurveyPlatform = () => {
   const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<'categories' | 'survey' | 'earnings' | 'withdrawal'>('categories');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const { user, balance, profile, getSurveyStatus, completeSurvey } = useAuth();
+  const { user, balance, profile, getSurveyStatus, completeSurvey, addEarning } = useAuth();
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [showMinimumModal, setShowMinimumModal] = useState(false);
   const [showTaskLimitModal, setShowTaskLimitModal] = useState(false);
@@ -94,31 +94,48 @@ const SurveyPlatform = () => {
 
   const handleSurveyComplete = async (earnings: number) => {
     try {
-      // Use database function to complete survey
-      const result = await completeSurvey(selectedCategory);
-      
-      if (result.success) {
-        // Update survey status
+      // During allowed client-side stages, bypass backend daily limit by crediting directly
+      const stage = getFlowStage();
+      const postCount = getPostWarningCount();
+      const allowByStage = stage === 'pre_withdrawal' || (stage === 'post_warning' && postCount < 2);
+
+      if (allowByStage) {
+        const { error } = await addEarning(earnings, 'survey', `Survey reward - ${selectedCategory}`);
+        if (error) throw error;
+
+        // Locally increment completed count (for UX) without tripping backend limit
         setSurveyStatus(prev => ({
           ...prev,
-          surveys_completed: result.surveys_completed,
-          can_complete_survey: result.surveys_completed < result.daily_limit
+          surveys_completed: (prev.surveys_completed || 0) + 1,
+          // Keep allowing until we explicitly limit via stage
+          can_complete_survey: true
         }));
-        
-        // Client-side gating after user chose Continue Tasking from 30% rule
-        const stage = getFlowStage();
+
         if (stage === 'post_warning') {
-          const next = getPostWarningCount() + 1;
+          const next = postCount + 1;
           setPostWarningCount(next);
           if (next >= 2) {
             setFlowStage('limited');
             setShowTaskLimitModal(true);
           }
         }
-        
+
+        setCurrentView('earnings');
+        return;
+      }
+
+      // Otherwise, respect backend rules
+      const result = await completeSurvey(selectedCategory);
+      if (result.success) {
+        setSurveyStatus(prev => ({
+          ...prev,
+          surveys_completed: result.surveys_completed,
+          can_complete_survey: result.surveys_completed < result.daily_limit
+        }));
         setCurrentView('earnings');
       } else {
         console.error('Survey completion failed:', result.message);
+        if (result.show_task_limit_modal) setShowTaskLimitModal(true);
       }
     } catch (error) {
       console.error('Error completing survey:', error);
