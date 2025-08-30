@@ -236,40 +236,40 @@ const WithdrawalInterface = ({
   // Processing State - Show loading with real-time status
   if (withdrawalStep === 'processing') {
     return (
-      <div className="max-w-lg mx-auto space-y-8 text-center">
-        <div className="space-y-6">
-          <div className="w-24 h-24 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
-            <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+      <div className="w-full max-w-lg mx-auto px-4 sm:px-6 space-y-6 sm:space-y-8 text-center">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
+            <Loader2 className="w-10 h-10 sm:w-12 sm:h-12 text-blue-600 animate-spin" />
           </div>
           
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-gray-900">Processing Withdrawal</h2>
-            <p className="text-muted-foreground">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Processing Withdrawal</h2>
+            <p className="text-sm sm:text-base text-muted-foreground px-2">
               {statusMessage}
             </p>
           </div>
         </div>
 
-        <Card className="p-6 shadow-elevated">
-          <div className="space-y-4">
+        <Card className="p-4 sm:p-6 shadow-elevated mx-2 sm:mx-0">
+          <div className="space-y-3 sm:space-y-4">
             <div className="flex justify-between items-center">
-              <span>Amount:</span>
-              <span className="font-bold text-lg">KSh {amount}</span>
+              <span className="text-sm sm:text-base">Amount:</span>
+              <span className="font-bold text-lg sm:text-xl">KSh {amount}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span>To:</span>
-              <span className="font-medium">{phoneNumber}</span>
+              <span className="text-sm sm:text-base">To:</span>
+              <span className="font-medium text-sm sm:text-base break-all">{phoneNumber}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span>Status:</span>
-              <span className="text-blue-600 font-medium">Waiting for confirmation</span>
+              <span className="text-sm sm:text-base">Status:</span>
+              <span className="text-blue-600 font-medium text-sm sm:text-base">Waiting for confirmation</span>
             </div>
           </div>
         </Card>
 
-        <Alert>
+        <Alert className="mx-2 sm:mx-0">
           <Smartphone className="h-4 w-4" />
-          <AlertDescription>
+          <AlertDescription className="text-sm">
             Please check your phone and enter your M-Pesa PIN to complete the withdrawal.
           </AlertDescription>
         </Alert>
@@ -280,40 +280,40 @@ const WithdrawalInterface = ({
   // Failed State - Show error with auto-reset
   if (withdrawalStep === 'failed') {
     return (
-      <div className="max-w-lg mx-auto space-y-8 text-center">
-        <div className="space-y-6">
-          <div className="w-24 h-24 mx-auto bg-red-100 rounded-full flex items-center justify-center">
-            <AlertCircle className="w-12 h-12 text-red-600" />
+      <div className="w-full max-w-lg mx-auto px-4 sm:px-6 space-y-6 sm:space-y-8 text-center">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto bg-red-100 rounded-full flex items-center justify-center">
+            <AlertCircle className="w-10 h-10 sm:w-12 sm:h-12 text-red-600" />
           </div>
           
           <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-red-600">Withdrawal Failed</h2>
-            <p className="text-muted-foreground">
+            <h2 className="text-xl sm:text-2xl font-bold text-red-600">Withdrawal Failed</h2>
+            <p className="text-sm sm:text-base text-muted-foreground px-2">
               {statusMessage}
             </p>
           </div>
         </div>
 
-        <Card className="p-6 shadow-elevated border-red-200">
-          <div className="space-y-4">
+        <Card className="p-4 sm:p-6 shadow-elevated border-red-200 mx-2 sm:mx-0">
+          <div className="space-y-3 sm:space-y-4">
             <div className="flex justify-between items-center">
-              <span>Amount:</span>
-              <span className="font-bold text-lg">KSh {amount}</span>
+              <span className="text-sm sm:text-base">Amount:</span>
+              <span className="font-bold text-lg sm:text-xl">KSh {amount}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span>To:</span>
-              <span className="font-medium">{phoneNumber}</span>
+              <span className="text-sm sm:text-base">To:</span>
+              <span className="font-medium text-sm sm:text-base break-all">{phoneNumber}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span>Status:</span>
-              <span className="text-red-600 font-medium">Failed</span>
+              <span className="text-sm sm:text-base">Status:</span>
+              <span className="text-red-600 font-medium text-sm sm:text-base">Failed</span>
             </div>
           </div>
         </Card>
 
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="mx-2 sm:mx-0">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
+          <AlertDescription className="text-sm">
             Returning to withdrawal form in a few seconds...
           </AlertDescription>
         </Alert>
@@ -324,75 +324,77 @@ const WithdrawalInterface = ({
   // Success State
   if (withdrawalStep === 'success') {
     return (
-      <div className="max-w-lg mx-auto space-y-8 text-center">
-        <div className="space-y-6">
-          <div className="w-24 h-24 mx-auto gradient-success rounded-full flex items-center justify-center animate-bounce shadow-glow">
-            <CheckCircle2 className="w-12 h-12 text-white" />
+      <div className="w-full max-w-lg mx-auto px-4 sm:px-6 space-y-6 sm:space-y-8 text-center">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto gradient-success rounded-full flex items-center justify-center animate-bounce shadow-glow">
+            <CheckCircle2 className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
           </div>
           
           <div className="space-y-2">
-            <h2 className="text-3xl font-bold text-success">Withdrawal Successful!</h2>
-            <p className="text-muted-foreground">
+            <h2 className="text-2xl sm:text-3xl font-bold text-success">Withdrawal Successful!</h2>
+            <p className="text-sm sm:text-base text-muted-foreground px-2">
               Your money has been sent to your M-Pesa account.
             </p>
           </div>
         </div>
 
-        <Card className="p-6 shadow-elevated">
-          <div className="space-y-4">
+        <Card className="p-4 sm:p-6 shadow-elevated mx-2 sm:mx-0">
+          <div className="space-y-3 sm:space-y-4">
             <div className="flex justify-between items-center">
-              <span>Amount Withdrawn:</span>
-              <span className="font-bold text-lg">KSh {amount}</span>
+              <span className="text-sm sm:text-base">Amount Withdrawn:</span>
+              <span className="font-bold text-lg sm:text-xl">KSh {amount}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span>Sent to:</span>
-              <span className="font-medium">{phoneNumber}</span>
+              <span className="text-sm sm:text-base">Sent to:</span>
+              <span className="font-medium text-sm sm:text-base break-all">{phoneNumber}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span>Transaction ID:</span>
-              <span className="font-mono text-sm">TXN{Date.now().toString().slice(-8)}</span>
+              <span className="text-sm sm:text-base">Transaction ID:</span>
+              <span className="font-mono text-xs sm:text-sm break-all">TXN{Date.now().toString().slice(-8)}</span>
             </div>
           </div>
         </Card>
 
-        <Button onClick={onBack} size="lg" className="w-full">
-          Continue Earning
-        </Button>
+        <div className="px-2 sm:px-0">
+          <Button onClick={onBack} size="lg" className="w-full h-12 sm:h-14 text-base sm:text-lg">
+            Continue Earning
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-lg mx-auto space-y-6">
+    <div className="w-full max-w-lg mx-auto px-4 sm:px-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" onClick={onBack} className="gap-2">
-          <ArrowLeft className="w-4 h-4" />
-          Back
+      <div className="flex items-start gap-3 sm:gap-4">
+        <Button variant="ghost" onClick={onBack} className="gap-2 mt-1 p-2 sm:p-3">
+          <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+          <span className="hidden sm:inline">Back</span>
         </Button>
-        <div>
-          <h2 className="text-2xl font-bold">Withdraw Earnings</h2>
-          <p className="text-muted-foreground">
+        <div className="flex-1 min-w-0">
+          <h2 className="text-xl sm:text-2xl font-bold leading-tight">Withdraw Earnings</h2>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
             Available balance: KSh {totalEarnings.toLocaleString()}
           </p>
         </div>
       </div>
 
-      <Card className="p-6 shadow-elevated">
-        <div className="space-y-6">
+      <Card className="p-4 sm:p-6 shadow-elevated mx-2 sm:mx-0">
+        <div className="space-y-4 sm:space-y-6">
           {/* Withdrawal Method */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold">Withdrawal Method</Label>
+            <Label className="text-sm sm:text-base font-semibold">Withdrawal Method</Label>
             <RadioGroup value={withdrawalMethod} onValueChange={setWithdrawalMethod}>
-              <div className="flex items-center space-x-3 p-4 rounded-lg border border-border hover:bg-accent/5">
-                <RadioGroupItem value="mpesa" id="mpesa" />
-                <Label htmlFor="mpesa" className="flex items-center gap-3 flex-1 cursor-pointer">
-                  <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-                    <Smartphone className="w-5 h-5 text-white" />
+              <div className="flex items-center space-x-3 p-3 sm:p-4 rounded-lg border border-border hover:bg-accent/5 active:bg-accent/10 transition-colors">
+                <RadioGroupItem value="mpesa" id="mpesa" className="touch-manipulation" />
+                <Label htmlFor="mpesa" className="flex items-center gap-3 flex-1 cursor-pointer touch-manipulation">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-600 rounded-lg flex items-center justify-center">
+                    <Smartphone className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
                   <div>
-                    <div className="font-medium">M-Pesa</div>
-                    <div className="text-sm text-muted-foreground">Instant transfer</div>
+                    <div className="font-medium text-sm sm:text-base">M-Pesa</div>
+                    <div className="text-xs sm:text-sm text-muted-foreground">Instant transfer</div>
                   </div>
                 </Label>
               </div>
@@ -401,7 +403,7 @@ const WithdrawalInterface = ({
 
           {/* Phone Number */}
           <div className="space-y-3">
-            <Label htmlFor="phone" className="text-base font-semibold">
+            <Label htmlFor="phone" className="text-sm sm:text-base font-semibold">
               M-Pesa Phone Number
             </Label>
             <Input
@@ -410,13 +412,14 @@ const WithdrawalInterface = ({
               placeholder="07XXXXXXXX or 01XXXXXXXX"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
-              className="text-base p-3"
+              className="text-base p-3 sm:p-4 h-12 sm:h-14 touch-manipulation"
+              inputMode="tel"
             />
           </div>
 
           {/* Amount */}
           <div className="space-y-3">
-            <Label htmlFor="amount" className="text-base font-semibold">
+            <Label htmlFor="amount" className="text-sm sm:text-base font-semibold">
               Withdrawal Amount (KSh)
             </Label>
             <Input
@@ -427,18 +430,19 @@ const WithdrawalInterface = ({
               onChange={(e) => setAmount(e.target.value)}
               min={minWithdrawal}
               max={maxWithdrawal}
-              className="text-base p-3"
+              className="text-base p-3 sm:p-4 h-12 sm:h-14 touch-manipulation"
+              inputMode="numeric"
             />
             
             {/* Quick Amount Buttons */}
-            <div className="flex gap-2 flex-wrap">
+            <div className="grid grid-cols-2 sm:flex gap-2 sm:flex-wrap">
               {[1000, 2000, Math.min(5000, totalEarnings), totalEarnings].filter(v => v >= minWithdrawal).map((value) => (
                 <Button
                   key={value}
                   variant="outline"
                   size="sm"
                   onClick={() => handleQuickAmount(value)}
-                  className="text-sm"
+                  className="text-xs sm:text-sm h-10 sm:h-auto touch-manipulation"
                   disabled={value > totalEarnings}
                 >
                   KSh {value.toLocaleString()}
@@ -448,48 +452,50 @@ const WithdrawalInterface = ({
           </div>
 
           {/* Info Alert */}
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              • Minimum withdrawal: KSh {minWithdrawal}
-              <br />
-              • Processing time: Instant to 5 minutes
-              <br />
-              • No transaction fees
+          <Alert className="bg-blue-50 border-blue-200">
+            <AlertCircle className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-sm">
+              <div className="space-y-1">
+                <div>• Minimum withdrawal: KSh {minWithdrawal}</div>
+                <div>• Processing time: Instant to 5 minutes</div>
+                <div>• No transaction fees</div>
+              </div>
             </AlertDescription>
           </Alert>
 
           {/* Withdraw Button */}
-          <Button
-            onClick={handleWithdraw}
-            disabled={withdrawalStep === 'processing' || withdrawalStep === 'success' || !phoneNumber || !amount}
-            size="lg"
-            className="w-full gradient-earning text-white hover:opacity-90 text-lg py-6"
-          >
-            {(() => {
-              if (withdrawalStep === 'processing') {
+          <div className="pt-2">
+            <Button
+              onClick={handleWithdraw}
+              disabled={withdrawalStep === 'processing' || withdrawalStep === 'success' || !phoneNumber || !amount}
+              size="lg"
+              className="w-full gradient-earning text-white hover:opacity-90 text-base sm:text-lg h-12 sm:h-14 touch-manipulation active:scale-95 transition-transform"
+            >
+              {(() => {
+                if (withdrawalStep === 'processing') {
+                  return (
+                    <>
+                      <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                      <span className="ml-2">Processing...</span>
+                    </>
+                  );
+                }
+                if (totalEarnings < minWithdrawal) {
+                  return (
+                    <span className="text-sm sm:text-base">
+                      Need KSh {(minWithdrawal - totalEarnings).toLocaleString()} More
+                    </span>
+                  );
+                }
                 return (
                   <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Processing...
+                    <Smartphone className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="ml-2">Withdraw KSh {amount || '0'}</span>
                   </>
                 );
-              }
-              if (totalEarnings < minWithdrawal) {
-                return (
-                  <>
-                    Need KSh {(minWithdrawal - totalEarnings).toLocaleString()} More
-                  </>
-                );
-              }
-              return (
-                <>
-                  <Smartphone className="w-5 h-5" />
-                  Withdraw KSh {amount || '0'}
-                </>
-              );
-            })()}
-          </Button>
+              })()} 
+            </Button>
+          </div>
         </div>
       </Card>
 

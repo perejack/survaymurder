@@ -52,7 +52,7 @@ const MobileBottomNav = ({ currentView, onViewChange, totalEarnings }: MobileBot
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-gray-200/50 mobile-safe shadow-lg">
-      <div className="flex items-center justify-around py-3 px-4">
+      <div className="flex items-center justify-around py-2 sm:py-3 px-2 sm:px-4">
         {navItems.map((item) => (
           <Button
             key={item.id}
@@ -67,35 +67,27 @@ const MobileBottomNav = ({ currentView, onViewChange, totalEarnings }: MobileBot
                 onViewChange(item.id);
               }
             }}
-            className={`flex flex-col items-center gap-1.5 p-3 h-auto min-h-[64px] hover:bg-gray-100/50 relative rounded-xl transition-all duration-200 ${
+            className={`relative flex flex-col items-center justify-center p-2 sm:p-3 rounded-lg transition-all duration-200 min-w-[60px] sm:min-w-[70px] touch-manipulation active:scale-95 ${
               item.active 
-                ? 'text-white shadow-lg transform scale-105' 
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'text-primary bg-primary/10 scale-105' 
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
             }`}
           >
-            <div className="relative">
-              <div className={`p-2 rounded-xl transition-all duration-200 ${
-                item.active 
-                  ? `bg-gradient-to-br ${item.gradient} shadow-lg` 
-                  : 'bg-transparent'
-              }`}>
-                <item.icon className={`w-5 h-5 transition-all duration-200 ${
-                  item.active ? 'text-white' : 'text-gray-500'
-                }`} />
-              </div>
-              {item.badge && (
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-br from-red-500 to-red-600 rounded-full border-2 border-white shadow-sm">
-                  <div className="w-full h-full bg-red-500 rounded-full animate-pulse" />
-                </div>
-              )}
-            </div>
-            <span className={`text-xs font-medium transition-all duration-200 ${
-              item.active ? 'text-gray-800 font-semibold' : 'text-gray-500'
+            <item.icon className={`w-5 h-5 sm:w-6 sm:h-6 mb-1 transition-colors ${
+              item.active ? 'text-primary' : 'text-gray-500'
+            }`} />
+            <span className={`text-xs font-medium transition-colors leading-tight ${
+              item.active ? 'text-primary' : 'text-gray-500'
             }`}>
               {item.label}
             </span>
             {item.active && (
-              <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-6 h-1 bg-gradient-to-r from-transparent via-gray-400 to-transparent rounded-full" />
+              <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-6 sm:w-8 h-1 bg-primary rounded-full" />
+            )}
+            {item.badge && (
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-br from-red-500 to-red-600 rounded-full border-2 border-white shadow-sm">
+                <div className="w-full h-full bg-red-500 rounded-full animate-pulse" />
+              </div>
             )}
           </Button>
         ))}
