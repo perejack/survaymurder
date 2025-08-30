@@ -131,6 +131,14 @@ All colors MUST be HSL. Inspired by Kenya's colors with modern fintech aesthetic
 
   body {
     @apply bg-background text-foreground font-sans;
+    /* Prevent horizontal panning/scroll on mobile due to any overflowing element */
+    overflow-x: hidden;
+  }
+
+  /* When a modal/dialog is open, lock background scrolling and prevent scroll chaining */
+  body.modal-open {
+    overflow: hidden;             /* lock both axes on page */
+    overscroll-behavior: none;    /* block scroll chaining to the page */
   }
 }
 

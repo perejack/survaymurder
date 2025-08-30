@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -35,6 +35,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
     password: '',
     confirmPassword: ''
   })
+
+  // When dialog is open, prevent background from scrolling/panning
+  useEffect(() => {
+    if (open) {
+      document.body.classList.add('modal-open')
+    } else {
+      document.body.classList.remove('modal-open')
+    }
+    return () => {
+      document.body.classList.remove('modal-open')
+    }
+  }, [open])
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -123,7 +135,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onOpenChange }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-[420px] sm:max-w-[480px] p-0 overflow-hidden bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 border-0 shadow-2xl rounded-2xl sm:rounded-3xl max-h-[95vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] max-w-[420px] sm:max-w-[480px] p-0 overflow-hidden bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 border-0 shadow-2xl rounded-2xl sm:rounded-3xl max-h-[95vh] overflow-y-auto overscroll-contain touch-pan-y">
         <div className="relative">
           {/* Background decorative elements */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-purple-600/5 to-pink-600/5" />
