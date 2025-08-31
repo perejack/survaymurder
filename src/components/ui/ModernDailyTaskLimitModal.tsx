@@ -98,7 +98,7 @@ const ModernDailyTaskLimitModal = ({
                 </div>
                 <div className="flex items-center gap-2 text-green-700">
                   <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span>Instant M-Pesa withdrawals</span>
+                  <span>M-Pesa withdrawals once eligible</span>
                 </div>
                 <div className="flex items-center gap-2 text-green-700">
                   <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
@@ -130,7 +130,7 @@ const ModernDailyTaskLimitModal = ({
             {/* Footer message */}
             <div className="text-center mt-3 sm:mt-4 p-2 sm:p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
               <p className="text-xs text-purple-800 px-1">
-                ⭐ <span className="font-semibold">Pro Tip:</span> Premium task packages give you instant access to high-paying surveys!
+                ⭐ <span className="font-semibold">Pro Tip:</span> Premium task packages can unlock access to additional surveys.
               </p>
             </div>
           </div>

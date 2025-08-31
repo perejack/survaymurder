@@ -113,8 +113,8 @@ const TaskCategories = () => {
             </span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Pick from hundreds of verified tasks that fit your schedule and skills. 
-            All payments are guaranteed and processed instantly.
+            Pick from hundreds of verified tasks that fit your schedule and skills.
+            Payments are processed after review; timing and availability may vary.
           </p>
         </div>
 
@@ -144,15 +144,11 @@ const TaskCategories = () => {
                   </p>
                 </div>
 
-                {/* Stats */}
+                {/* Stats (no fixed earning/time; avoid absolute claims) */}
                 <div className="space-y-2 pt-2 border-t border-border">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-muted-foreground">Earning:</span>
-                    <span className="text-sm font-semibold text-accent">{task.earning}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-muted-foreground">Time:</span>
-                    <span className="text-sm">{task.time}</span>
+                    <span className="text-xs text-muted-foreground">Details:</span>
+                    <span className="text-xs text-muted-foreground">Earnings and time vary by task</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-muted-foreground">Level:</span>

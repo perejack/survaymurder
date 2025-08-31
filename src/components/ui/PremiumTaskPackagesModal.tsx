@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogDescription } from "@/components/ui/dialog
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Package, Zap, DollarSign, CheckCircle, ArrowRight, Sparkles, Crown, Loader2, CreditCard, Star, Shield, Trophy, Infinity } from "lucide-react";
+import { Package, Zap, DollarSign, CheckCircle, ArrowRight, Sparkles, Crown, Loader2, CreditCard, Star, Shield, Trophy, ArrowUp } from "lucide-react";
 import PaymentFormModal from './PaymentFormModal';
 
 interface PremiumTaskPackagesModalProps {
@@ -31,9 +31,9 @@ const PremiumTaskPackagesModal = ({
       dailyLimit: 5000,
       features: [
         '10 Additional Tasks',
-        '250 KSH per task',
-        'Up to 5,000 KSH daily earning',
-        'Instant M-Pesa withdrawal',
+        'Up to KSh 250 per task (varies)',
+        'Up to 5,000 KSh daily (limits may apply)',
+        'M-Pesa withdrawals once eligible',
         'Valid for 24 hours'
       ],
       color: 'from-blue-500 to-cyan-500',
@@ -46,13 +46,13 @@ const PremiumTaskPackagesModal = ({
       tasks: 20,
       perTask: 250,
       totalEarning: 5000,
-      dailyLimit: 'unlimited',
+      dailyLimit: 'higher',
       features: [
         '20 Additional Tasks',
-        '250 KSH per task',
-        'Unlimited daily earning',
-        'No withdrawal limits',
-        'Instant M-Pesa withdrawal',
+        'Up to KSh 250 per task (varies)',
+        'Higher daily limits (limits may apply)',
+        'Withdrawal limits may apply',
+        'M-Pesa withdrawals once eligible',
         'Priority support',
         'Valid for 24 hours'
       ],
@@ -102,7 +102,7 @@ const PremiumTaskPackagesModal = ({
                   </div>
                   <div>
                     <div className="text-2xl font-bold text-green-600">{packages[selectedPackage].totalEarning.toLocaleString()}</div>
-                    <div className="text-sm text-gray-600">Max Earning (KSH)</div>
+                    <div className="text-sm text-gray-600">Maximum earning potential (KSh)</div>
                   </div>
                 </div>
               </div>
@@ -209,13 +209,13 @@ const PremiumTaskPackagesModal = ({
                       {/* Daily Limit Badge */}
                       <div className="flex justify-center mb-4">
                         <Badge className={`bg-gradient-to-r ${pkg.color} text-white border-0 px-3 sm:px-4 py-1 text-xs sm:text-sm`}>
-                          {pkg.dailyLimit === 'unlimited' ? (
+                          {pkg.dailyLimit === 'higher' ? (
                             <div className="flex items-center gap-1">
-                              <Infinity className="w-3 h-3 sm:w-4 sm:h-4" />
-                              <span>Unlimited Daily Earning</span>
+                              <ArrowUp className="w-3 h-3 sm:w-4 sm:h-4" />
+                              <span>Higher daily limits</span>
                             </div>
                           ) : (
-                            <span>Up to KSH {pkg.dailyLimit.toLocaleString()} daily</span>
+                            <span>Up to KSh {pkg.dailyLimit.toLocaleString()} daily</span>
                           )}
                         </Badge>
                       </div>
@@ -231,7 +231,7 @@ const PremiumTaskPackagesModal = ({
                       >
                         <div className="flex items-center justify-center gap-2">
                           <CreditCard className="w-4 h-4 flex-shrink-0" />
-                          <span>Unlock Tasks - KSH {pkg.price}</span>
+                          <span>Unlock Tasks - KSh {pkg.price}</span>
                         </div>
                       </Button>
                     </div>
@@ -244,7 +244,7 @@ const PremiumTaskPackagesModal = ({
             {/* Footer */}
             <div className="text-center mt-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-200">
               <p className="text-sm text-gray-700">
-                💡 <span className="font-semibold">Pro Tip:</span> Pro package offers the best value with unlimited earning potential!
+                💡 <span className="font-semibold">Pro Tip:</span> Pro package offers great value with higher daily limits.
               </p>
             </div>
           </div>

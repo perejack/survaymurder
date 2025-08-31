@@ -51,9 +51,9 @@ const TaskPackagesModal = ({
       instantWithdrawal: true,
       features: [
         '10 premium tasks',
-        'KSh 250 per task',
-        'Instant M-Pesa withdrawal',
-        'KSh 5,000 daily withdrawal limit',
+        'Up to KSh 250 per task (varies)',
+        'M-Pesa withdrawals available once eligible',
+        'Daily withdrawal limit applies',
         'Valid for 30 days'
       ]
     },
@@ -63,14 +63,14 @@ const TaskPackagesModal = ({
       price: 350,
       tasks: 20,
       payPerTask: 250,
-      withdrawalLimit: 0, // No limit
+      withdrawalLimit: 0, // Represented in UI as higher limits
       instantWithdrawal: true,
       popular: true,
       features: [
         '20 premium tasks',
-        'KSh 250 per task',
-        'No withdrawal limit',
-        'Instant M-Pesa withdrawal',
+        'Up to KSh 250 per task (varies)',
+        'Higher withdrawal limits (limits may apply)',
+        'M-Pesa withdrawals available once eligible',
         'Priority task access',
         'Valid for 30 days'
       ]
@@ -368,7 +368,7 @@ const TaskPackagesModal = ({
             {/* Value proposition */}
             <div className="text-center mt-4 p-3 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg border border-orange-200">
               <p className="text-xs text-orange-800">
-                💰 <span className="font-semibold">Smart Investment:</span> Each package pays for itself with just 1-2 completed tasks!
+                💡 <span className="font-semibold">Note:</span> Many users recover costs after a few tasks; results vary by profile and availability.
               </p>
             </div>
           </div>

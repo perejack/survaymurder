@@ -40,7 +40,7 @@ const ModernTaskPackagesModal = ({
       icon: Package,
       features: [
         '10 Premium Surveys',
-        'Instant Access',
+        'Quick Access',
         'Higher Payouts',
         '24/7 Support'
       ]
@@ -337,7 +337,7 @@ const ModernTaskPackagesModal = ({
             <div className="grid grid-cols-3 gap-2 mt-4 sm:mt-6">
               <div className="text-center p-2 sm:p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
                 <Trophy className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 text-green-600" />
-                <p className="text-xs font-semibold text-green-800">Instant</p>
+                <p className="text-xs font-semibold text-green-800">Quick</p>
                 <p className="text-xs text-green-600">Access</p>
               </div>
               <div className="text-center p-2 sm:p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
@@ -351,6 +351,11 @@ const ModernTaskPackagesModal = ({
                 <p className="text-xs text-purple-600">Payouts</p>
               </div>
             </div>
+
+            {/* Disclaimer */}
+            <p className="text-[10px] sm:text-xs text-gray-500 text-center mt-3 sm:mt-4">
+              Earnings and task availability vary by profile, location, and inventory. No guarantee of income. Withdrawal eligibility and limits may apply.
+            </p>
           </div>
         </div>
       </DialogContent>

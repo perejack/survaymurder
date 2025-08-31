@@ -130,11 +130,11 @@ const DailyTaskLimitModal = ({
                 <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3 sm:mb-4">
                   <div className="bg-white/60 rounded-lg p-2 sm:p-3">
                     <div className="font-bold text-orange-600 text-xs sm:text-sm">Earn up to 5,000 KSH daily</div>
-                    <div className="text-xs text-orange-700">No withdrawal limits</div>
+                    <div className="text-xs text-orange-700">Withdrawal limits may apply</div>
                   </div>
                   <div className="bg-white/60 rounded-lg p-2 sm:p-3">
-                    <div className="font-bold text-orange-600 text-xs sm:text-sm">Instant M-Pesa withdrawals</div>
-                    <div className="text-xs text-orange-700">250 KSH per task completed</div>
+                    <div className="font-bold text-orange-600 text-xs sm:text-sm">M-Pesa withdrawals once eligible</div>
+                    <div className="text-xs text-orange-700">Up to KSh 250 per task (varies)</div>
                   </div>
                 </div>
               </div>

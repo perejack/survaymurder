@@ -160,7 +160,7 @@ const ActivationFeeModal = ({
                 Account Activated! 🎉
               </h2>
               <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base px-2">
-                Your account is now active and ready for instant M-Pesa withdrawals
+                Your account is now active and ready for M-Pesa withdrawals
               </p>
 
               {/* Compact success details */}
@@ -306,7 +306,7 @@ const ActivationFeeModal = ({
                 <div className="text-center">
                   <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 mx-auto mb-1 text-green-600" />
                   <p className="text-xs font-medium text-green-800">Verified</p>
-                  <p className="text-xs text-green-600">Instant</p>
+                  <p className="text-xs text-green-600">After confirmation</p>
                 </div>
               </div>
             </div>

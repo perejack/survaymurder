@@ -157,7 +157,7 @@ const PlatinumWithdrawalModal = ({
             {/* Footer message */}
             <div className="text-center mt-4 p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
               <p className="text-xs text-purple-800">
-                👑 <span className="font-semibold">Platinum Advantage:</span> Enjoy unlimited withdrawals and keep your account active!
+                👑 <span className="font-semibold">Platinum Advantage:</span> Enjoy higher withdrawal limits and keep your account active!
               </p>
             </div>
           </div>

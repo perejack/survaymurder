@@ -69,6 +69,9 @@ const EarningsDashboard = () => {
                 ? "Activate your account to start earning."
                 : "Track your progress, manage your tasks, and watch your earnings grow in real-time."}
             </p>
+            <p className="text-xs text-muted-foreground mt-2 max-w-2xl mx-auto">
+              Earnings and availability vary by profile, location and task inventory. No guarantee of income.
+            </p>
           </div>
 
           {!isAccountActive ? (
@@ -187,18 +190,18 @@ const EarningsDashboard = () => {
                     <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6">
                       <Smartphone className="w-8 h-8" />
                     </div>
-                    <h3 className="text-2xl font-bold mb-4">Instant M-Pesa Withdrawals</h3>
+                    <h3 className="text-2xl font-bold mb-4">M-Pesa Withdrawals</h3>
                     <p className="text-success-foreground/90 mb-6">
-                      Withdraw your earnings instantly to your M-Pesa account. No waiting, no fees, no hassle.
+                      Withdraw your available balance to your M-Pesa account. Processing times and fees may vary.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                       <div className="bg-white/10 rounded-lg p-4">
-                        <div className="text-lg font-bold">Instant</div>
+                        <div className="text-lg font-bold">Fast</div>
                         <div className="text-sm opacity-90">Processing</div>
                       </div>
                       <div className="bg-white/10 rounded-lg p-4">
-                        <div className="text-lg font-bold">0%</div>
-                        <div className="text-sm opacity-90">Fees</div>
+                        <div className="text-lg font-bold">Transparent</div>
+                        <div className="text-sm opacity-90">Fees may apply</div>
                       </div>
                       <div className="bg-white/10 rounded-lg p-4">
                         <div className="text-lg font-bold">24/7</div>

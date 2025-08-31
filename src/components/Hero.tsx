@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ArrowRight, Smartphone, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -8,30 +8,12 @@ import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-image.jpg";
 
 const Hero = () => {
-  const [earnings, setEarnings] = useState(0);
   const [activeUsers, setActiveUsers] = useState(12847);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Animate earning counter
-    const targetEarnings = 5847;
-    const increment = targetEarnings / 100;
-    let current = 0;
-    
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= targetEarnings) {
-        setEarnings(targetEarnings);
-        clearInterval(timer);
-      } else {
-        setEarnings(Math.floor(current));
-      }
-    }, 20);
-
-    return () => clearInterval(timer);
-  }, []);
+  // Removed animated daily earnings counter to avoid implying specific earning amounts
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 pb-10 sm:pt-28">
@@ -62,19 +44,8 @@ const Hero = () => {
             </p>
           </div>
 
-          {/* Stats */}
+          {/* Stats (no daily earning figure) */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center animate-slide-up animate-delay-200">
-            <Card className="gradient-card p-6 hover-lift border-0 shadow-elevated">
-              <div className="text-center">
-                <div className="text-3xl font-bold text-accent mb-2">
-                  KSh {earnings.toLocaleString()}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Earned Today
-                </div>
-              </div>
-            </Card>
-            
             <Card className="gradient-card p-6 hover-lift border-0 shadow-elevated">
               <div className="text-center">
                 <div className="text-3xl font-bold text-success mb-2">
@@ -111,7 +82,7 @@ const Hero = () => {
 
           {/* Trust indicators */}
           <div className="pt-8 animate-slide-up animate-delay-300">
-            <p className="text-white/70 text-sm mb-4">Trusted by thousands • Instant M-Pesa withdrawals • Verified tasks only</p>
+            <p className="text-white/70 text-sm mb-4">Trusted by thousands • M-Pesa withdrawals once eligible • Verified tasks only</p>
             <div className="flex justify-center items-center gap-6 opacity-60">
               <span className="text-sm">🇰🇪 Made for Kenya</span>
               <span className="text-sm">📱 M-Pesa Ready</span>

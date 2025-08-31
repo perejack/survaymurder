@@ -143,7 +143,7 @@ const PlatinumUpgradeModal = ({
               <div className="grid grid-cols-1 gap-2 sm:gap-3 mb-4 sm:mb-6">
                 <div className="flex items-center gap-2 sm:gap-3 bg-white/60 rounded-lg p-2 sm:p-3">
                   <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" />
-                  <span className="text-xs sm:text-sm font-medium">Instant full withdrawals unlocked</span>
+                  <span className="text-xs sm:text-sm font-medium">Full withdrawals available once eligible</span>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3 bg-white/60 rounded-lg p-2 sm:p-3">
                   <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" />
@@ -177,7 +177,7 @@ const PlatinumUpgradeModal = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-[480px] p-0 overflow-hidden bg-gradient-to-br from-purple-50 via-pink-50 to-yellow-50 border-0 shadow-2xl rounded-2xl sm:rounded-3xl max-h-[90vh] overflow-y-auto">
         <DialogDescription className="sr-only">
-          Upgrade to Platinum membership for unlimited surveys and exclusive benefits
+          Upgrade to Platinum membership for more surveys and exclusive benefits
         </DialogDescription>
         <div className="relative">
           {/* Background decorative elements */}
@@ -196,7 +196,7 @@ const PlatinumUpgradeModal = ({
                 <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs">PREMIUM</Badge>
               </h2>
               <p className="text-gray-600 leading-relaxed text-sm sm:text-base px-2">
-                Unlock unlimited withdrawals and premium earning opportunities
+                Unlock higher withdrawal limits and premium earning opportunities
               </p>
             </div>
 
@@ -218,8 +218,8 @@ const PlatinumUpgradeModal = ({
                     <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-green-800 text-sm sm:text-base">Instant Full Withdrawal</h3>
-                    <p className="text-xs sm:text-sm text-green-700">No minimum balance required</p>
+                    <h3 className="font-bold text-green-800 text-sm sm:text-base">Full withdrawals once eligible</h3>
+                    <p className="text-xs sm:text-sm text-green-700">Eligibility and limits may apply</p>
                   </div>
                 </div>
               </Card>
@@ -231,7 +231,7 @@ const PlatinumUpgradeModal = ({
                   </div>
                   <div>
                     <h3 className="font-bold text-blue-800 text-sm sm:text-base">Up to KSh 6,000 Daily</h3>
-                    <p className="text-xs sm:text-sm text-blue-700">Higher M-Pesa withdrawal limits</p>
+                    <p className="text-xs sm:text-sm text-blue-700">Higher M-Pesa withdrawal limits (limits may apply)</p>
                   </div>
                 </div>
               </Card>
@@ -243,7 +243,7 @@ const PlatinumUpgradeModal = ({
                   </div>
                   <div>
                     <h3 className="font-bold text-orange-800 text-sm sm:text-base">Premium Tasks</h3>
-                    <p className="text-xs sm:text-sm text-orange-700">Up to KSh 200 per task, 10 daily</p>
+                    <p className="text-xs sm:text-sm text-orange-700">Up to KSh 200 per task; availability varies</p>
                   </div>
                 </div>
               </Card>
@@ -324,7 +324,7 @@ const PlatinumUpgradeModal = ({
             {/* Value proposition */}
             <div className="text-center mt-3 sm:mt-4 p-2 sm:p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
               <p className="text-xs text-purple-800">
-                💎 <span className="font-semibold">Limited Time:</span> Upgrade now and start earning more with premium tasks and unlimited withdrawals!
+                💎 <span className="font-semibold">Limited Time:</span> Upgrade now and start earning more with premium tasks and higher withdrawal limits!
               </p>
             </div>
           </div>

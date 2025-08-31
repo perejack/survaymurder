@@ -79,8 +79,8 @@ const AccountActivationModal = ({
                     <div className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-2 bg-green-500/20 rounded-full flex items-center justify-center">
                       <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                     </div>
-                    <p className="text-xs sm:text-sm font-medium text-gray-800">Instant M-Pesa</p>
-                    <p className="text-xs text-green-600">Direct withdrawals</p>
+                    <p className="text-xs sm:text-sm font-medium text-gray-800">M-Pesa withdrawals</p>
+                    <p className="text-xs text-green-600">Direct withdrawals once eligible</p>
                   </div>
                 </Card>
                 
@@ -124,7 +124,7 @@ const AccountActivationModal = ({
             {/* Security note */}
             <div className="text-center mt-3 sm:mt-4">
               <p className="text-xs text-gray-500 px-2">
-                🔒 Secure activation process • One-time setup • Instant verification
+                🔒 Secure activation process • One-time setup • Verification after payment confirmation
               </p>
             </div>
           </div>

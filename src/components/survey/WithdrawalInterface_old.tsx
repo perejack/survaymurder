@@ -306,7 +306,7 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
                   </div>
                   <div>
                     <div className="font-medium">M-Pesa</div>
-                    <div className="text-sm text-muted-foreground">Instant transfer</div>
+                    <div className="text-sm text-muted-foreground">Fast transfer (timing may vary)</div>
                   </div>
                 </Label>
               </div>
@@ -367,7 +367,7 @@ const WithdrawalInterface = ({ totalEarnings, onBack, onStartEarning }: Withdraw
             <AlertDescription>
               • Minimum withdrawal: KSh {minWithdrawal}
               <br />
-              • Processing time: Instant to 5 minutes
+              • Typical processing time: minutes; timing may vary
               <br />
               • No transaction fees
             </AlertDescription>

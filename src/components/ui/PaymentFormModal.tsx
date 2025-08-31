@@ -175,7 +175,7 @@ const PaymentFormModal = ({
           </Button>
 
           <p className="text-xs text-center text-muted-foreground">
-            🔒 Secure M-Pesa payment • Instant activation • No hidden fees
+            🔒 Secure M-Pesa payment • Activation after payment confirmation • No platform fees; mobile operator fees may apply
           </p>
         </div>
       </DialogContent>

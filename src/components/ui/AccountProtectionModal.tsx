@@ -121,16 +121,16 @@ const AccountProtectionModal = ({
                 <div className="flex items-center gap-2 sm:gap-3 bg-white/60 rounded-lg p-2 sm:p-3">
                   <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600" />
                   <div>
-                    <p className="font-semibold text-xs sm:text-sm text-gray-800">Instant Full Withdrawal</p>
-                    <p className="text-xs text-gray-600">No minimum balance required</p>
+                    <p className="font-semibold text-xs sm:text-sm text-gray-800">Full withdrawals available once eligible</p>
+                    <p className="text-xs text-gray-600">Eligibility and limits may apply</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-2 sm:gap-3 bg-white/60 rounded-lg p-2 sm:p-3">
                   <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
                   <div>
-                    <p className="font-semibold text-xs sm:text-sm text-gray-800">Up to KSh 6,000 Daily M-Pesa</p>
-                    <p className="text-xs text-gray-600">Higher withdrawal limits</p>
+                    <p className="font-semibold text-xs sm:text-sm text-gray-800">Up to KSh 6,000 daily</p>
+                    <p className="text-xs text-gray-600">Higher M-Pesa limits (limits may apply)</p>
                   </div>
                 </div>
                 
@@ -138,7 +138,7 @@ const AccountProtectionModal = ({
                   <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                   <div>
                     <p className="font-semibold text-xs sm:text-sm text-gray-800">Tasks up to KSh 200</p>
-                    <p className="text-xs text-gray-600">10 premium tasks daily</p>
+                    <p className="text-xs text-gray-600">Availability varies; up to 10 daily</p>
                   </div>
                 </div>
               </div>
@@ -169,7 +169,7 @@ const AccountProtectionModal = ({
                 variant="outline"
                 className="w-full h-10 sm:h-11 border-2 border-orange-300 text-orange-700 hover:bg-orange-50 font-semibold text-xs sm:text-sm rounded-xl touch-manipulation active:scale-95"
               >
-                Withdraw Instantly (Platinum Only)
+                Withdraw when eligible (Platinum)
               </Button>
               
               <Button

@@ -19,6 +19,9 @@ import ModernDailyTaskLimitModal from "@/components/ui/ModernDailyTaskLimitModal
 import ModernTaskPackagesModal from "@/components/ui/ModernTaskPackagesModal";
 import WithdrawalSuccessModal from "@/components/ui/WithdrawalSuccessModal";
 
+// Strongly-typed union for withdrawal step to avoid accidental narrowings
+type WithdrawalStep = 'input' | 'processing' | 'success' | 'failed';
+
 interface WithdrawalInterfaceProps {
   totalEarnings: number;
   onBack: () => void;
@@ -42,7 +45,7 @@ const WithdrawalInterface = ({
   const [phoneNumber, setPhoneNumber] = useState('');
   const [amount, setAmount] = useState('');
   const [withdrawalMethod, setWithdrawalMethod] = useState('mpesa');
-  const [withdrawalStep, setWithdrawalStep] = useState<'input' | 'processing' | 'success' | 'failed'>('input');
+  const [withdrawalStep, setWithdrawalStep] = useState<WithdrawalStep>('input');
   const [statusMessage, setStatusMessage] = useState('');
   const [showMinimumModal, setShowMinimumModal] = useState(false);
   const [showActivationModal, setShowActivationModal] = useState(false);
@@ -53,6 +56,14 @@ const WithdrawalInterface = ({
   const [showPlatinumWithdrawalModal, setShowPlatinumWithdrawalModal] = useState(false);
   const [showDailyTaskLimitModal, setShowDailyTaskLimitModal] = useState(false);
   const [showTaskPackagesModal, setShowTaskPackagesModal] = useState(false);
+  
+  // Map of steps that should disable the withdraw action
+  const actionDisabledByStep: Record<WithdrawalStep, boolean> = {
+    input: false,
+    processing: true,
+    success: true,
+    failed: false,
+  };
   const [showWithdrawalSuccessModal, setShowWithdrawalSuccessModal] = useState(false);
   const [isAccountActive, setIsAccountActive] = useState(propIsAccountActive);
   const [isPlatinumUser, setIsPlatinumUser] = useState(false);
@@ -394,7 +405,7 @@ const WithdrawalInterface = ({
                   </div>
                   <div>
                     <div className="font-medium text-sm sm:text-base">M-Pesa</div>
-                    <div className="text-xs sm:text-sm text-muted-foreground">Instant transfer</div>
+                    <div className="text-xs sm:text-sm text-muted-foreground">Fast transfer (timing may vary)</div>
                   </div>
                 </Label>
               </div>
@@ -457,8 +468,8 @@ const WithdrawalInterface = ({
             <AlertDescription className="text-sm">
               <div className="space-y-1">
                 <div>• Minimum withdrawal: KSh {minWithdrawal}</div>
-                <div>• Processing time: Instant to 5 minutes</div>
-                <div>• No transaction fees</div>
+                <div>• Typical processing time: minutes; timing may vary</div>
+                <div>• No platform fees; mobile operator fees may apply</div>
               </div>
             </AlertDescription>
           </Alert>
@@ -467,33 +478,35 @@ const WithdrawalInterface = ({
           <div className="pt-2">
             <Button
               onClick={handleWithdraw}
-              disabled={withdrawalStep === 'processing' || withdrawalStep === 'success' || !phoneNumber || !amount}
+              disabled={actionDisabledByStep[withdrawalStep] || !phoneNumber || !amount}
               size="lg"
               className="w-full gradient-earning text-white hover:opacity-90 text-base sm:text-lg h-12 sm:h-14 touch-manipulation active:scale-95 transition-transform"
             >
               {(() => {
-                if (withdrawalStep === 'processing') {
-                  return (
-                    <>
-                      <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-                      <span className="ml-2">Processing...</span>
-                    </>
-                  );
+                switch (withdrawalStep) {
+                  case 'processing':
+                    return (
+                      <>
+                        <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                        <span className="ml-2">Processing...</span>
+                      </>
+                    );
+                  default:
+                    if (totalEarnings < minWithdrawal) {
+                      return (
+                        <span className="text-sm sm:text-base">
+                          Need KSh {(minWithdrawal - totalEarnings).toLocaleString()} More
+                        </span>
+                      );
+                    }
+                    return (
+                      <>
+                        <Smartphone className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <span className="ml-2">Withdraw KSh {amount || '0'}</span>
+                      </>
+                    );
                 }
-                if (totalEarnings < minWithdrawal) {
-                  return (
-                    <span className="text-sm sm:text-base">
-                      Need KSh {(minWithdrawal - totalEarnings).toLocaleString()} More
-                    </span>
-                  );
-                }
-                return (
-                  <>
-                    <Smartphone className="w-4 h-4 sm:w-5 sm:h-5" />
-                    <span className="ml-2">Withdraw KSh {amount || '0'}</span>
-                  </>
-                );
-              })()} 
+              })()}
             </Button>
           </div>
         </div>
@@ -574,7 +587,7 @@ const WithdrawalInterface = ({
           } else {
             toast({
               title: "Platinum Required",
-              description: "Upgrade to Platinum for instant full withdrawals.",
+              description: "Upgrade to Platinum for higher withdrawal limits and faster processing when eligible.",
               variant: "destructive"
             });
           }
