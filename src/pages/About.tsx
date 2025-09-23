@@ -82,7 +82,7 @@ const About = () => {
                   </li>
                   <li className="flex gap-2">
                     <CheckCircle className="w-4 h-4 text-warning flex-shrink-0 mt-0.5" />
-                    <span>KSh 150 activation fee is fully refundable upon reaching withdrawal threshold</span>
+                    <span>KSh 120 activation fee is fully refundable upon reaching withdrawal threshold</span>
                   </li>
                   <li className="flex gap-2">
                     <CheckCircle className="w-4 h-4 text-warning flex-shrink-0 mt-0.5" />

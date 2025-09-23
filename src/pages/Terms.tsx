@@ -77,12 +77,12 @@ const Terms = () => {
               <h2 className="text-xl font-semibold text-foreground mb-3">Account Activation & Refundable Fee</h2>
               <div className="bg-success/10 border border-success p-4 rounded-lg mb-3">
                 <p className="font-semibold text-success mb-2">💰 REFUNDABLE ACTIVATION FEE</p>
-                <p className="text-sm">The KSh 150 activation fee is <strong>100% REFUNDABLE</strong>. 
-                Once you reach the minimum withdrawal threshold, the full KSh 150 will be credited 
+                <p className="text-sm">The KSh 120 activation fee is <strong>100% REFUNDABLE</strong>.
+                Once you reach the minimum withdrawal threshold, the full KSh 120 will be credited
                 back to your account balance.</p>
               </div>
               <ul className="list-disc list-inside space-y-2">
-                <li>One-time activation fee of KSh 150 is required for account verification</li>
+                <li>One-time activation fee of KSh 120 is required for account verification</li>
                 <li>This fee is fully refunded when you reach withdrawal eligibility</li>
                 <li>The refund is automatic and added to your withdrawable balance</li>
                 <li>Purpose: To verify serious users and prevent platform abuse</li>

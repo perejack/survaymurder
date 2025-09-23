@@ -51,7 +51,7 @@ const Hero = () => {
                 Results vary significantly. No income is guaranteed.
               </p>
               <p className="text-sm text-success text-center font-semibold">
-                ✓ KSh 150 activation fee is 100% refundable upon reaching withdrawal threshold
+                ✓ KSh 120 activation fee is 100% refundable upon reaching withdrawal threshold
               </p>
             </Card>
           </div>
