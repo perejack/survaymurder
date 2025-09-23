@@ -1,0 +1,29 @@
+[build]
+  publish = "dist"
+  command = "npm run build"
+  ignore = "false"
+
+[functions]
+  directory = "functions"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[build.environment]
+  NODE_VERSION = "18"
+  VITE_CONTACT_EMAIL = "info@earntasking.online"
+  VITE_CONTACT_PHONE = "+254 712 222 6787"
+  VITE_BUSINESS_NAME = "BLUEROCK PARTNERS"
+  VITE_BUSINESS_REG = "BN-P7SAD8YK"
+  VITE_BUSINESS_ADDRESS = "LENANA BUILDING, LENANAN ROAD, NAIROBI"
+
+# Headers for security
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
