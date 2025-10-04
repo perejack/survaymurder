@@ -43,18 +43,6 @@ const Hero = () => {
             </p>
           </div>
 
-          {/* Disclaimer */}
-          <div className="animate-slide-up animate-delay-200">
-            <Card className="gradient-card p-4 hover-lift border-0 shadow-elevated max-w-2xl mx-auto">
-              <p className="text-sm text-muted-foreground text-center mb-2">
-                <strong>Important:</strong> Earnings depend on task availability, completion quality, and other factors.
-                Results vary significantly. No income is guaranteed.
-              </p>
-              <p className="text-sm text-success text-center font-semibold">
-                ✓ KSh 120 activation fee is 100% refundable upon reaching withdrawal threshold
-              </p>
-            </Card>
-          </div>
 
           {/* CTA buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up animate-delay-300">
