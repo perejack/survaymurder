@@ -1,4 +1,4 @@
-// Working STK Push payment service from genesis verification project
+// STK Push payment service - Updated for Vercel API routes
 export interface PaymentResponse {
   success: boolean;
   message: string;
