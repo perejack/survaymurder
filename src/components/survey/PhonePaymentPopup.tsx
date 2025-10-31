@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Smartphone, Shield, Loader2, CheckCircle, AlertTriangle } from "lucide-react";
 
+// Using Vercel API routes for payment processing
+
 interface PhonePaymentPopupProps {
   isOpen: boolean;
   onPaymentSuccess: () => void;
