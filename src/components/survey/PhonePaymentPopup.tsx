@@ -40,6 +40,28 @@ export function PhonePaymentPopup({
         cleanPhone = '254' + cleanPhone;
       }
 
+      // Generate reference
+      const reference = `SURVEY-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+      // Save application data first
+      try {
+        await fetch('/api/submit-application', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            phone: cleanPhone,
+            amount: amount,
+            paymentReference: reference
+          })
+        });
+        console.log('Application data saved');
+      } catch (err) {
+        console.error('Failed to save application:', err);
+        // Continue with payment anyway
+      }
+
       const response = await fetch('/api/initiate-payment', {
         method: 'POST',
         headers: {
