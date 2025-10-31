@@ -46,7 +46,7 @@ export function validatePhoneNumber(phoneNumber: string): boolean {
 // Initiate STK Push payment using working genesis functions
 export async function initiatePayment(
   phoneNumber: string,
-  amount: number = 20,
+  amount: number = 125,
   description: string = 'Account Activation Fee'
 ): Promise<PaymentResponse> {
   try {

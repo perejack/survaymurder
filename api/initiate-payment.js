@@ -22,7 +22,7 @@ export default async (req, res) => {
   }
 
   try {
-    const { phoneNumber, amount = 120, description = 'Survey Platform Fee' } = req.body;
+    const { phoneNumber, amount = 125, description = 'Survey Platform Fee' } = req.body;
     
     console.log('Parsed request:', { phoneNumber, amount, description });
     
