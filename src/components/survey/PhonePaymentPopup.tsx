@@ -38,7 +38,7 @@ export function PhonePaymentPopup({
         cleanPhone = '254' + cleanPhone;
       }
 
-      const response = await fetch('/.netlify/functions/initiate-payment', {
+      const response = await fetch('/api/initiate-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -71,7 +71,7 @@ export function PhonePaymentPopup({
 
     const checkStatus = async () => {
       try {
-        const response = await fetch(`/.netlify/functions/payment-status/${requestId}`);
+        const response = await fetch(`/api/payment-status?reference=${requestId}`);
         const data = await response.json();
 
         if (data.success && data.payment) {
