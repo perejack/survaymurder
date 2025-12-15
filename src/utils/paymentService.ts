@@ -3,8 +3,10 @@ export interface PaymentResponse {
   success: boolean;
   message: string;
   data?: {
-    externalReference: string;
-    checkoutRequestId: string;
+    requestId?: string;
+    checkoutRequestId?: string;
+    transactionRequestId?: string;
+    externalReference?: string;
   };
   error?: string;
 }
@@ -110,7 +112,8 @@ export function pollPaymentStatus(
       
       // Stop polling if payment is complete or failed
       if (status.success && status.payment) {
-        if (status.payment.status === 'SUCCESS' || status.payment.status === 'FAILED') {
+        if (status.payment.status === 'success' || status.payment.status === 'failed' || 
+            status.payment.status === 'SUCCESS' || status.payment.status === 'FAILED') {
           clearTimeout(timeout);
           return;
         }

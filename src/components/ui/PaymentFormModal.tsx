@@ -46,7 +46,13 @@ const PaymentFormModal = ({
       
       const paymentResult = await initiatePayment(phoneNumber, packagePrice, description);
       
-      if (paymentResult.success && paymentResult.data?.checkoutRequestId) {
+      if (paymentResult.success && paymentResult.data) {
+        const requestId = paymentResult.data.requestId || paymentResult.data.checkoutRequestId || paymentResult.data.transactionRequestId;
+        
+        if (!requestId) {
+          throw new Error('No transaction ID received from payment service');
+        }
+        
         toast({
           title: "STK Push Sent! 📱",
           description: "Check your phone and enter your M-Pesa PIN to complete payment",
@@ -54,10 +60,10 @@ const PaymentFormModal = ({
         
         // Start real payment status polling
         const cleanup = pollPaymentStatus(
-          paymentResult.data.checkoutRequestId,
+          requestId,
           (status) => {
             if (status.success && status.payment) {
-              if (status.payment.status === 'SUCCESS') {
+              if (status.payment.status === 'success' || status.payment.status === 'SUCCESS') {
                 setIsProcessing(false);
                 onPaymentSuccess();
                 
@@ -71,7 +77,7 @@ const PaymentFormModal = ({
                   onOpenChange(false);
                   setPhoneNumber(''); // Reset form
                 }, 2000);
-              } else if (status.payment.status === 'FAILED') {
+              } else if (status.payment.status === 'failed' || status.payment.status === 'FAILED') {
                 setIsProcessing(false);
                 toast({
                   title: "Payment Failed",

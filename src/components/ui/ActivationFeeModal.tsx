@@ -62,7 +62,12 @@ const ActivationFeeModal = ({
       const paymentResponse = await initiatePayment(phoneNumber, activationFee, 'Account Activation Fee');
       
       if (paymentResponse.success && paymentResponse.data) {
-        const requestId = paymentResponse.data.checkoutRequestId || paymentResponse.data.externalReference;
+        const requestId = paymentResponse.data.requestId || paymentResponse.data.checkoutRequestId || paymentResponse.data.transactionRequestId;
+        
+        if (!requestId) {
+          throw new Error('No transaction ID received from payment service');
+        }
+        
         setPaymentReference(requestId);
         setStatusMessage('STK Push sent. Please complete payment on your phone.');
         

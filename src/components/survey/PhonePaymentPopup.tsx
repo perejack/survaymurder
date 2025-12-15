@@ -76,8 +76,13 @@ export function PhonePaymentPopup({
 
       const data = await response.json();
 
-      if (data.success) {
-        const requestId = data.data.checkoutRequestId || data.data.externalReference;
+      if (data.success === true && data.data) {
+        const requestId = data.data.requestId || data.data.checkoutRequestId || data.data.transactionRequestId;
+        
+        if (!requestId) {
+          throw new Error('No transaction ID received from payment service');
+        }
+        
         pollPaymentStatus(requestId);
       } else {
         throw new Error(data.message || 'Failed to initiate payment');
