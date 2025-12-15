@@ -41,8 +41,20 @@ export default async (req, res) => {
   try {
     console.log('Raw request body:', req.body);
     console.log('Request body type:', typeof req.body);
+    console.log('Request headers:', req.headers);
     
-    let { phoneNumber, amount = 10, description = 'Survey Platform Fee' } = req.body;
+    // Handle both parsed JSON and string body
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        console.error('Failed to parse body string:', e);
+        return res.status(400).json({ success: false, message: 'Invalid JSON in request body' });
+      }
+    }
+    
+    let { phoneNumber, amount = 10, description = 'Survey Platform Fee' } = body;
     
     console.log('Parsed request:', { phoneNumber, amount, description });
     
