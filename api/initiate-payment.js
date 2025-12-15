@@ -39,11 +39,15 @@ export default async (req, res) => {
   }
 
   try {
+    console.log('Raw request body:', req.body);
+    console.log('Request body type:', typeof req.body);
+    
     let { phoneNumber, amount = 10, description = 'Survey Platform Fee' } = req.body;
     
     console.log('Parsed request:', { phoneNumber, amount, description });
     
     if (!phoneNumber) {
+      console.error('Missing phoneNumber in request body');
       return res.status(400).json({ success: false, message: 'Phone number is required' });
     }
     
