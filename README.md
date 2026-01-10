@@ -62,6 +62,37 @@ This project is built with:
 
 ## How can I deploy this project?
 
+### Deploy to Netlify
+
+1. Push this repository to GitHub
+2. Go to [Netlify](https://app.netlify.com) and click "Add new site" → "Import an existing project"
+3. Connect your GitHub repository
+4. Configure build settings (already set in `netlify.toml`):
+   - Build command: `npm run build`
+   - Publish directory: `dist`
+5. Click "Deploy site"
+
+### Required Environment Variables
+
+In Netlify Dashboard → Site settings → Environment variables, add these:
+
+**Supabase (frontend):**
+- `VITE_SUPABASE_URL` = `https://maplsndeuigjgzdubbpf.supabase.co`
+- `VITE_SUPABASE_ANON_KEY` = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzem54YWt5dHFpZXRqdXhoc2RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzNTMzMjAsImV4cCI6MjA4MDkyOTMyMH0.I4F39VBSvoX8bnGDyneEigzzEhKlGX8ZAkhJrbFAXZE`
+
+**Supabase (serverless API routes):**
+- `SUPABASE_URL` = same as above
+- `SUPABASE_ANON_KEY` = same as above
+
+**SwiftPay:**
+- `SWIFTPAY_API_KEY` = your SwiftPay API key
+- `SWIFTPAY_TILL_ID` = your SwiftPay Till ID
+- `SWIFTPAY_BACKEND_URL` = `https://swiftpay-backend-uvv9.onrender.com` (optional, this is the default)
+
+After adding environment variables, redeploy the site in Netlify.
+
+### Deploy with Lovable
+
 Simply open [Lovable](https://lovable.dev/projects/91459790-839a-48e6-aed2-4adc1754551c) and click on Share -> Publish.
 
 ## Can I connect a custom domain to my Lovable project?
