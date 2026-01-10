@@ -3,34 +3,33 @@
   "devCommand": "npm run dev",
   "outputDirectory": "dist",
   "framework": "vite",
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
+      "handle": "filesystem"
     },
     {
-      "source": "/@vite/(.*)",
-      "destination": "/@vite/$1"
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
     },
     {
-      "source": "/@react-refresh",
-      "destination": "/@react-refresh"
+      "src": "/@vite/(.*)",
+      "dest": "/@vite/$1"
     },
     {
-      "source": "/src/(.*)",
-      "destination": "/src/$1"
+      "src": "/@react-refresh",
+      "dest": "/@react-refresh"
     },
     {
-      "source": "/node_modules/(.*)",
-      "destination": "/node_modules/$1"
+      "src": "/src/(.*)",
+      "dest": "/src/$1"
     },
     {
-      "source": "/assets/(.*)",
-      "destination": "/assets/$1"
+      "src": "/node_modules/(.*)",
+      "dest": "/node_modules/$1"
     },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
