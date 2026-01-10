@@ -78,7 +78,7 @@ In Netlify Dashboard → Site settings → Environment variables, add these:
 
 **Supabase (frontend):**
 - `VITE_SUPABASE_URL` = `https://maplsndeuigjgzdubbpf.supabase.co`
-- `VITE_SUPABASE_ANON_KEY` = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hcGxzbmRldWlnemd6ZHViYnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMjAzNDUsImV4cCI6MjA3MTc5NjM0NX0.PdrktLkKDs961bX1edrkkJIPk2CIC02YnQMXf-faYbA`
+- `VITE_SUPABASE_ANON_KEY` = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzem54YWt5dHFpZXRqdXhoc2RmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzNTMzMjAsImV4cCI6MjA4MDkyOTMyMH0.I4F39VBSvoX8bnGDyneEigzzEhKlGX8ZAkhJrbFAXZE`
 
 **Supabase (serverless API routes):**
 - `SUPABASE_URL` = same as above
