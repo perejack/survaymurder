@@ -8,16 +8,9 @@ const sitemapAndRobotsPlugin = (): Plugin => ({
   name: "generate-sitemap-and-robots",
   apply: "build",
   async closeBundle() {
-    const routes = [
-      { path: "/", changefreq: "weekly", priority: 1.0 },
-      { path: "/about", changefreq: "monthly", priority: 0.7 },
-      { path: "/contact", changefreq: "monthly", priority: 0.7 },
-      { path: "/terms", changefreq: "yearly", priority: 0.3 },
-      { path: "/privacy", changefreq: "yearly", priority: 0.3 },
-      { path: "/cookies", changefreq: "yearly", priority: 0.3 },
-    ];
+    console.log("[sitemap-plugin] Starting sitemap and robots generation...");
 
-    const resolveSiteUrl = () => {
+    const siteUrl = (() => {
       const explicit = process.env.SITE_URL || process.env.VITE_SITE_URL;
       if (explicit) return explicit.replace(/\/$/, "");
 
@@ -27,7 +20,18 @@ const sitemapAndRobotsPlugin = (): Plugin => ({
       if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`.replace(/\/$/, "");
 
       return "http://localhost:5173";
-    };
+    })();
+
+    console.log("[sitemap-plugin] Using site URL:", siteUrl);
+
+    const routes = [
+      { path: "/", changefreq: "weekly", priority: 1.0 },
+      { path: "/about", changefreq: "monthly", priority: 0.7 },
+      { path: "/contact", changefreq: "monthly", priority: 0.7 },
+      { path: "/terms", changefreq: "yearly", priority: 0.3 },
+      { path: "/privacy", changefreq: "yearly", priority: 0.3 },
+      { path: "/cookies", changefreq: "yearly", priority: 0.3 },
+    ];
 
     const xmlEscape = (s: unknown) =>
       String(s)
@@ -38,7 +42,6 @@ const sitemapAndRobotsPlugin = (): Plugin => ({
         .replace(/'/g, "&apos;");
 
     const distDir = path.resolve(process.cwd(), "dist");
-    const siteUrl = resolveSiteUrl();
     const lastmod = new Date().toISOString();
 
     const urls = routes
@@ -66,6 +69,8 @@ const sitemapAndRobotsPlugin = (): Plugin => ({
     await fs.mkdir(distDir, { recursive: true });
     await fs.writeFile(path.join(distDir, "sitemap.xml"), sitemap, "utf8");
 
+    console.log("[sitemap-plugin] Generated dist/sitemap.xml");
+
     const robotsPath = path.join(distDir, "robots.txt");
     const robots = [
       "User-agent: *",
@@ -76,6 +81,9 @@ const sitemapAndRobotsPlugin = (): Plugin => ({
     ].join("\n");
 
     await fs.writeFile(robotsPath, robots, "utf8");
+
+    console.log("[sitemap-plugin] Generated dist/robots.txt");
+    console.log("[sitemap-plugin] Sitemap and robots generation complete");
   },
 });
 
