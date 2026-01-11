@@ -59,6 +59,7 @@ const Hero = () => {
               size="lg" 
               variant="outline" 
               className="w-full sm:w-auto bg-white/10 border-white/30 text-white hover:bg-white/20 px-8 py-6 text-lg backdrop-blur-sm"
+              onClick={() => navigate('/#earn')}
             >
               <Zap className="w-5 h-5 mr-2" />
               See How It Works

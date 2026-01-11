@@ -24,13 +24,13 @@ const Header = () => {
           </div>
 
           <nav className="hidden md:flex items-center gap-6">
-            <a href="#tasks" className="text-muted-foreground hover:text-foreground transition-colors">
+            <a href="/#tasks" className="text-muted-foreground hover:text-foreground transition-colors">
               Tasks
             </a>
-            <a href="#earn" className="text-muted-foreground hover:text-foreground transition-colors">
+            <a href="/#earn" className="text-muted-foreground hover:text-foreground transition-colors">
               How to Earn
             </a>
-            <a href="#withdraw" className="text-muted-foreground hover:text-foreground transition-colors">
+            <a href="/#withdraw" className="text-muted-foreground hover:text-foreground transition-colors">
               Withdraw
             </a>
           </nav>

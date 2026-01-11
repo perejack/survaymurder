@@ -38,7 +38,7 @@ const Footer = () => {
             <ul className="space-y-2 text-sm">
               <li><Link to="/about" className="text-background/70 hover:text-background transition-colors">About Us</Link></li>
               <li><Link to="/contact" className="text-background/70 hover:text-background transition-colors">Contact</Link></li>
-              <li><a href="#tasks" className="text-background/70 hover:text-background transition-colors">Browse Tasks</a></li>
+              <li><a href="/#tasks" className="text-background/70 hover:text-background transition-colors">Browse Tasks</a></li>
               <li><Link to="/terms" className="text-background/70 hover:text-background transition-colors">Terms</Link></li>
               <li><Link to="/privacy" className="text-background/70 hover:text-background transition-colors">Privacy</Link></li>
             </ul>
@@ -48,11 +48,11 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Task Categories</h3>
             <ul className="space-y-2 text-sm">
-              <li><a href="#" className="text-background/70 hover:text-background transition-colors">Surveys</a></li>
-              <li><a href="#" className="text-background/70 hover:text-background transition-colors">Delivery</a></li>
-              <li><a href="#" className="text-background/70 hover:text-background transition-colors">Data Entry</a></li>
-              <li><a href="#" className="text-background/70 hover:text-background transition-colors">Photography</a></li>
-              <li><a href="#" className="text-background/70 hover:text-background transition-colors">Social Media</a></li>
+              <li><Link to="/survey" className="text-background/70 hover:text-background transition-colors">Surveys</Link></li>
+              <li><a href="/#tasks" className="text-background/70 hover:text-background transition-colors">Delivery</a></li>
+              <li><a href="/#tasks" className="text-background/70 hover:text-background transition-colors">Data Entry</a></li>
+              <li><a href="/#tasks" className="text-background/70 hover:text-background transition-colors">Photography</a></li>
+              <li><a href="/#tasks" className="text-background/70 hover:text-background transition-colors">Social Media</a></li>
             </ul>
           </div>
 
@@ -114,7 +114,7 @@ const Footer = () => {
             <div className="flex gap-6 text-sm">
               <Link to="/privacy" className="text-background/70 hover:text-background transition-colors">Privacy Policy</Link>
               <Link to="/terms" className="text-background/70 hover:text-background transition-colors font-semibold">Terms of Service</Link>
-              <a href="#" className="text-background/70 hover:text-background transition-colors">Cookie Policy</a>
+              <Link to="/cookies" className="text-background/70 hover:text-background transition-colors">Cookie Policy</Link>
             </div>
           </div>
         </div>

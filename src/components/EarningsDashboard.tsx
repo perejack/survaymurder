@@ -4,8 +4,10 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { PhonePaymentPopup } from "@/components/survey/PhonePaymentPopup";
+import { useNavigate } from "react-router-dom";
 
 const EarningsDashboard = () => {
+  const navigate = useNavigate();
   const [todayEarnings, setTodayEarnings] = useState(0);
   const [weeklyEarnings, setWeeklyEarnings] = useState(0);
   const [completedTasks, setCompletedTasks] = useState(0);
@@ -147,11 +149,18 @@ const EarningsDashboard = () => {
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                    <Button className="flex-1 gradient-hero text-white hover:opacity-90">
+                    <Button
+                      className="flex-1 gradient-hero text-white hover:opacity-90"
+                      onClick={() => navigate('/survey')}
+                    >
                       <Smartphone className="w-4 h-4 mr-2" />
                       View Available Tasks
                     </Button>
-                    <Button variant="outline" className="flex-1 hover-lift">
+                    <Button
+                      variant="outline"
+                      className="flex-1 hover-lift"
+                      onClick={() => navigate('/survey')}
+                    >
                       <DollarSign className="w-4 h-4 mr-2" />
                       Withdraw to M-Pesa
                     </Button>
@@ -160,7 +169,7 @@ const EarningsDashboard = () => {
               </Card>
 
               {/* M-Pesa integration highlight */}
-              <div className="mt-12 text-center">
+              <div id="withdraw" className="mt-12 text-center">
                 <Card className="gradient-success p-8 text-white shadow-elevated hover-lift">
                   <div className="max-w-2xl mx-auto">
                     <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6">
