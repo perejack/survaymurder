@@ -8,6 +8,14 @@
       "handle": "filesystem"
     },
     {
+      "src": "/sitemap\\.xml$",
+      "dest": "/api/sitemap"
+    },
+    {
+      "src": "/robots\\.txt$",
+      "dest": "/api/robots"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1"
     },
@@ -26,14 +34,6 @@
     {
       "src": "/node_modules/(.*)",
       "dest": "/node_modules/$1"
-    },
-    {
-      "src": "/sitemap\\.xml",
-      "dest": "/sitemap.xml"
-    },
-    {
-      "src": "/robots\\.txt",
-      "dest": "/robots.txt"
     },
     {
       "src": "/(.*)",
