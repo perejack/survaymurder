@@ -14,8 +14,13 @@ const sitemapAndRobotsPlugin = (): Plugin => ({
       const explicit = process.env.SITE_URL || process.env.VITE_SITE_URL;
       if (explicit) return explicit.replace(/\/$/, "");
 
-      // Explicitly check for the production domain
-      if (process.env.VERCEL_ENV === "production") {
+      // Check if this is a production deployment on Vercel
+      const isVercelProduction =
+        process.env.VERCEL_ENV === "production" ||
+        process.env.NODE_ENV === "production" ||
+        (process.env.VERCEL_URL && !process.env.VERCEL_URL.includes("-"));
+
+      if (isVercelProduction) {
         return "https://www.earntasking.online";
       }
 
