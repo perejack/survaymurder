@@ -32,7 +32,11 @@ function xmlEscape(s) {
 }
 
 async function main() {
+  console.log('[standalone-sitemap] Starting sitemap generation...')
+
   const siteUrl = resolveSiteUrl()
+  console.log('[standalone-sitemap] Using site URL:', siteUrl)
+
   const distDir = path.resolve(process.cwd(), 'dist')
 
   const now = new Date()
@@ -63,6 +67,8 @@ async function main() {
   await fs.mkdir(distDir, { recursive: true })
   await fs.writeFile(path.join(distDir, 'sitemap.xml'), sitemap, 'utf8')
 
+  console.log('[standalone-sitemap] Generated dist/sitemap.xml')
+
   const robotsPath = path.join(distDir, 'robots.txt')
   let robots = ''
   try {
@@ -89,6 +95,8 @@ async function main() {
 
   await fs.writeFile(robotsPath, robots, 'utf8')
 
+  console.log('[standalone-sitemap] Updated dist/robots.txt')
+  console.log('[standalone-sitemap] Sitemap generation complete')
   console.log(`Generated sitemap.xml and updated robots.txt for ${siteUrl}`)
 }
 
