@@ -65,54 +65,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   ) => {
     if (!user) return { error: new Error('No user logged in') }
     try {
-      // Insert transaction record
-      const { error: insertError } = await supabase.from('earning_transactions').insert({
-        user_id: user.id,
+      // Use RPC function to handle earnings update
+      const { error } = await supabase.rpc('add_earnings', {
+        user_uuid: user.id,
         amount,
         transaction_type: type,
         description,
       })
-      if (insertError) {
-        return { error: new Error(insertError.message) }
-      }
 
-      // Fetch current earnings
-      const { data: currentEarnings } = await supabase
-        .from('user_earnings')
-        .select('total_earnings, available_balance')
-        .eq('user_id', user.id)
-        .maybeSingle()
-
-      const currentTotal = currentEarnings?.total_earnings || 0
-      const currentBalance = currentEarnings?.available_balance || 0
-
-      // Try UPDATE first with count
-      const { error: updateError, count } = await supabase
-        .from('user_earnings')
-        .update({
-          total_earnings: currentTotal + amount,
-          available_balance: currentBalance + amount,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('user_id', user.id)
-        .select('id', { count: 'exact' })
-
-      // If UPDATE didn't affect any rows (count === 0), INSERT it
-      if (!count || count === 0) {
-        const { error: insertEarningsError } = await supabase
-          .from('user_earnings')
-          .insert({
-            user_id: user.id,
-            total_earnings: amount,
-            available_balance: amount,
-            pending_balance: 0,
-            withdrawn_total: 0,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-        if (insertEarningsError && insertEarningsError.code !== '23505') {
-          console.error('Error inserting earnings:', insertEarningsError)
-        }
+      if (error) {
+        return { error: new Error(error.message) }
       }
 
       await fetchBalance()

@@ -604,7 +604,32 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Function to activate user account
+-- Function to add earnings (handles upsert)
+CREATE OR REPLACE FUNCTION public.add_earnings(user_uuid UUID, amount INTEGER, transaction_type TEXT DEFAULT 'survey', description TEXT DEFAULT '')
+RETURNS BOOLEAN AS $$
+BEGIN
+  -- Insert transaction record
+  INSERT INTO public.earning_transactions (user_id, amount, transaction_type, description)
+  VALUES (user_uuid, amount, transaction_type, description);
+
+  -- Update or insert earnings
+  INSERT INTO public.user_earnings (user_id, total_earnings, available_balance, pending_balance, withdrawn_total, created_at, updated_at)
+  VALUES (user_uuid, amount, amount, 0, 0, NOW(), NOW())
+  ON CONFLICT (user_id) DO UPDATE SET
+    total_earnings = public.user_earnings.total_earnings + amount,
+    available_balance = public.user_earnings.available_balance + amount,
+    updated_at = NOW();
+
+  RETURN TRUE;
+EXCEPTION
+  WHEN OTHERS THEN
+    RAISE WARNING 'Error adding earnings: %', SQLERRM;
+    RETURN FALSE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Grant execute permissions
+GRANT EXECUTE ON FUNCTION public.add_earnings(UUID, INTEGER, TEXT, TEXT) TO authenticated;
 CREATE OR REPLACE FUNCTION public.activate_user_account(user_uuid UUID)
 RETURNS BOOLEAN AS $$
 BEGIN
