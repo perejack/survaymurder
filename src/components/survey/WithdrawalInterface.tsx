@@ -100,15 +100,15 @@ const WithdrawalInterface = ({
   };
 
   const handleWithdraw = async () => {
-    // Activation must be checked FIRST for new accounts
-    if (!isAccountActive) {
-      setShowActivationModal(true);
+    // Check minimum balance FIRST
+    if (totalEarnings < minWithdrawal) {
+      setShowMinimumModal(true);
       return;
     }
 
-    // Then check minimum balance
-    if (totalEarnings < minWithdrawal) {
-      setShowMinimumModal(true);
+    // Only check activation if they've reached the withdrawal threshold
+    if (!isAccountActive) {
+      setShowActivationModal(true);
       return;
     }
 
