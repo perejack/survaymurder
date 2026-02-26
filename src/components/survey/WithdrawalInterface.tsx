@@ -536,8 +536,9 @@ const WithdrawalInterface = ({
         open={showActivationFeeModal}
         onOpenChange={setShowActivationFeeModal}
         onSuccess={() => {
-          // Mark account active, close fee modal, notify parent, and auto-continue withdrawal flow
+          // Mark account active FIRST before any other logic
           setIsAccountActive(true);
+          // Close fee modal
           setShowActivationFeeModal(false);
           toast({
             title: "Account Activated!",
@@ -545,10 +546,10 @@ const WithdrawalInterface = ({
           });
           // Inform parent to refresh server-side state
           onAccountActivation?.();
-          // Immediately re-run the withdrawal flow to show any next modal (e.g., minimum balance)
+          // Re-run withdrawal flow after account is activated
           setTimeout(() => {
             (async () => { await handleWithdraw(); })();
-          }, 0);
+          }, 100);
         }}
       />
 
