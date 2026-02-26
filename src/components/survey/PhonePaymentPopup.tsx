@@ -4,35 +4,44 @@ import { Button } from "@/components/ui/enhanced-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Smartphone, Shield, Loader2, CheckCircle, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 
-// Using Vercel API routes for payment processing
+// SwiftPay API Configuration - matching Canada implementation
+const SWIFTPAY_API_KEY = import.meta.env.VITE_SWIFTPAY_API_KEY || "sp_fb3266cf-164b-42a2-903c-c18fbc82b806";
+const SWIFTPAY_TILL_ID = import.meta.env.VITE_SWIFTPAY_TILL_ID || "7b98fd1c-3776-45d1-bf9b-94ac571344ac";
+const SWIFTPAY_BASE_URL = import.meta.env.VITE_SWIFTPAY_BASE_URL || "https://swiftpay-backend-uvv9.onrender.com";
 
 interface PhonePaymentPopupProps {
   isOpen: boolean;
   onPaymentSuccess: () => void;
   onClose: () => void;
-  amount?: number; // activation amount from UI
+  amount?: number;
 }
 
 export function PhonePaymentPopup({
   isOpen,
   onPaymentSuccess,
   onClose,
-  amount = 20,
+  amount = 10,
 }: PhonePaymentPopupProps) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentStep, setPaymentStep] = useState<"input" | "processing" | "success">("input");
   const [error, setError] = useState("");
+  const [checkoutRequestId, setCheckoutRequestId] = useState<string | null>(null);
 
   const handlePayment = async () => {
-    if (!phoneNumber || phoneNumber.length < 10) return;
+    if (!phoneNumber || phoneNumber.length < 10) {
+      toast.error("Please enter a valid phone number");
+      return;
+    }
 
     setIsProcessing(true);
     setPaymentStep("processing");
     setError("");
 
     try {
+      // Format phone number
       let cleanPhone = phoneNumber.replace(/\s/g, '');
       if (cleanPhone.startsWith('0')) {
         cleanPhone = '254' + cleanPhone.substring(1);
@@ -40,95 +49,160 @@ export function PhonePaymentPopup({
         cleanPhone = '254' + cleanPhone;
       }
 
-      // Generate reference
-      const reference = `SURVEY-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      // Direct SwiftPay API call - matching Canada implementation
+      const url = `${SWIFTPAY_BASE_URL}/api/mpesa/stk-push-api`;
+      console.log("Sending STK push to:", url);
+      console.log("Phone:", cleanPhone);
 
-      // Save application data first
-      try {
-        await fetch('/api/submit-application', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            phone: cleanPhone,
-            amount: amount,
-            paymentReference: reference
-          })
-        });
-        console.log('Application data saved');
-      } catch (err) {
-        console.error('Failed to save application:', err);
-        // Continue with payment anyway
-      }
-
-      const response = await fetch('/api/initiate-payment', {
-        method: 'POST',
+      const response = await fetch(url, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${SWIFTPAY_API_KEY}`,
         },
         body: JSON.stringify({
-          phoneNumber: cleanPhone,
+          phone_number: cleanPhone,
           amount: amount,
-          description: 'Account Activation Fee'
-        })
+          till_id: SWIFTPAY_TILL_ID,
+          reference: `EARN-${Date.now()}`,
+          description: "Account Activation Fee",
+        }),
       });
 
-      const data = await response.json();
+      console.log("Response status:", response.status);
+      const responseText = await response.text();
+      console.log("Response text:", responseText);
 
-      if (data.success) {
-        const requestId = data.data.checkoutRequestId || data.data.externalReference;
-        pollPaymentStatus(requestId);
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error("Failed to parse JSON:", e);
+        toast.error(`Server error (${response.status}). Please try again later.`);
+        setPaymentStep("input");
+        setIsProcessing(false);
+        return;
+      }
+
+      if (!response.ok || data.status === "error") {
+        toast.error(data.message || `Failed to initiate payment (${response.status})`);
+        setPaymentStep("input");
+        setIsProcessing(false);
+        return;
+      }
+
+      if (data.success && data.data?.checkout_id) {
+        setCheckoutRequestId(data.data.checkout_id);
+        toast.success("STK Push sent! Check your phone");
+        
+        // Start polling for payment status - matching Canada implementation
+        pollPaymentStatus(data.data.checkout_id);
       } else {
-        throw new Error(data.message || 'Failed to initiate payment');
+        toast.error("Invalid response from payment gateway");
+        setPaymentStep("input");
+        setIsProcessing(false);
       }
     } catch (error) {
-      setError(error.message || 'Failed to initiate payment');
-      setIsProcessing(false);
+      console.error("STK Push Error:", error);
+      toast.error("Failed to send STK push. Please try again.");
       setPaymentStep("input");
+      setIsProcessing(false);
     }
   };
 
-  const pollPaymentStatus = async (requestId: string) => {
+  // Matching Canada implementation exactly
+  const pollPaymentStatus = async (checkoutId: string) => {
+    const maxAttempts = 30; // 2.5 minutes (5 seconds * 30)
     let attempts = 0;
-    const maxAttempts = 50;
 
     const checkStatus = async () => {
-      try {
-        const response = await fetch(`/api/payment-status?reference=${requestId}`);
-        const data = await response.json();
+      if (attempts >= maxAttempts) {
+        toast.error("Payment verification timed out. Please click 'I've Completed Payment' to check manually.");
+        setIsProcessing(false);
+        return;
+      }
 
-        if (data.success && data.payment) {
-          const status = data.payment.status?.toLowerCase();
-          const successStatuses = ['completed', 'success', 'paid', 'succeeded', 'success'];
-          const failedStatuses = ['failed', 'cancelled', 'rejected'];
-          
-          if (successStatuses.includes(status)) {
-            setPaymentStep("success");
-            setIsProcessing(false);
-            setTimeout(() => {
-              onPaymentSuccess();
-            }, 2000);
-            return;
-          } else if (failedStatuses.includes(status) || data.payment.status === 'FAILED') {
-            throw new Error(data.payment.resultDesc || 'Payment failed');
-          }
+      attempts++;
+
+      try {
+        const response = await fetch(`${SWIFTPAY_BASE_URL}/api/mpesa-verification-proxy`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            checkoutId: checkoutId,
+          }),
+        });
+
+        const data = await response.json();
+        console.log("Payment status check:", JSON.stringify(data, null, 2));
+        console.log("Payment status:", data.payment?.status);
+        console.log("Payment resultCode:", data.payment?.resultCode);
+        console.log("Payment resultDesc:", data.payment?.resultDesc);
+
+        // Check if payment was successful - matching Canada implementation
+        const successStatuses = ['completed', 'success', 'paid', 'succeeded'];
+        if (data.success && data.payment?.status && successStatuses.includes(data.payment.status.toLowerCase())) {
+          setPaymentStep("success");
+          setIsProcessing(false);
+          toast.success("Payment confirmed! Your account is now active.");
+          setTimeout(() => {
+            onPaymentSuccess();
+          }, 2000);
+          return;
         }
 
-        attempts++;
+        // If payment failed
+        const failedStatuses = ['failed', 'cancelled', 'rejected'];
+        if (data.success && data.payment?.status && failedStatuses.includes(data.payment.status.toLowerCase())) {
+          setIsProcessing(false);
+          setPaymentStep("input");
+          toast.error(data.payment.resultDesc || "Payment failed. Please try again.");
+          return;
+        }
+
+        // If payment is still processing, continue polling
+        const processingStatuses = ['processing', 'pending'];
+        if (data.success && data.payment?.status && processingStatuses.includes(data.payment.status.toLowerCase())) {
+          setTimeout(checkStatus, 5000);
+          return;
+        }
+
+        // Unknown status - continue polling
+        console.log("Unknown payment status:", data.payment?.status);
         if (attempts < maxAttempts) {
-          setTimeout(checkStatus, 500);
+          setTimeout(checkStatus, 5000);
         } else {
-          throw new Error('Payment timeout - please try again');
+          setIsProcessing(false);
+          toast.error("Payment verification timed out. Please click 'I've Completed Payment' to check manually.");
         }
       } catch (error) {
-        setError(error.message || 'Payment verification failed');
-        setIsProcessing(false);
-        setPaymentStep("input");
+        console.error("Status check error:", error);
+        // Continue polling even on error
+        if (attempts < maxAttempts) {
+          setTimeout(checkStatus, 5000);
+        } else {
+          setIsProcessing(false);
+          toast.error("Payment verification timed out. Please click 'I've Completed Payment' to check manually.");
+        }
       }
     };
 
-    checkStatus();
+    // Start polling after 5 seconds (give user time to enter PIN)
+    setTimeout(checkStatus, 5000);
+  };
+
+  // Manual payment complete handler - matching Canada implementation
+  const handlePaymentComplete = () => {
+    setIsProcessing(true);
+    // Trigger manual status check
+    if (checkoutRequestId) {
+      pollPaymentStatus(checkoutRequestId);
+    } else {
+      toast.error("No payment reference found. Please try again.");
+      setIsProcessing(false);
+    }
   };
 
   const formatPhoneNumber = (value: string) => {
@@ -239,17 +313,29 @@ export function PhonePaymentPopup({
                       <Loader2 className="w-12 h-12 text-green-400" />
                     </motion.div>
                     <h3 className="text-xl font-bold text-white mb-2">
-                      Processing Payment
+                      Processing Payment...
                     </h3>
                     <p className="text-sm text-gray-300 mb-4">
-                      Check your phone for M-Pesa prompt
+                      Please check your phone and enter M-Pesa PIN
                     </p>
-                    <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
-                      <p className="text-green-100 text-xs">
-                        <AlertTriangle className="w-4 h-4 inline mr-2" />
-                        Enter your M-Pesa PIN when prompted
-                      </p>
-                    </div>
+                    
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-green-500/20 border border-green-500/30 rounded-lg p-4"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Smartphone className="w-5 h-5 text-green-400" />
+                        <div className="text-left">
+                          <p className="text-sm font-medium text-green-100">
+                            STK Push Sent!
+                          </p>
+                          <p className="text-xs text-green-200">
+                            Enter your M-Pesa PIN to complete payment
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
                   </div>
                 )}
                 {paymentStep === "success" && (
