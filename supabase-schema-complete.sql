@@ -533,6 +533,110 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Grant execute permissions
 GRANT EXECUTE ON FUNCTION public.get_current_user_balance() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_daily_survey_status(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.increment_survey_count(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_user_stats(UUID) TO authenticated;
+
+-- =====================================================
+-- 10. ADDITIONAL RPC FUNCTIONS FOR FRONTEND
+-- =====================================================
+
+-- Function to complete a survey and update earnings
+CREATE OR REPLACE FUNCTION public.complete_survey(user_uuid UUID, survey_category TEXT DEFAULT 'general')
+RETURNS TABLE (
+  success BOOLEAN,
+  surveys_completed INTEGER,
+  daily_limit INTEGER,
+  message TEXT
+) AS $$
+DECLARE
+  v_surveys_completed INTEGER;
+  v_daily_limit INTEGER := 2;
+  v_reward_amount INTEGER := 150; -- Default reward
+BEGIN
+  -- Check daily limit
+  SELECT COUNT(*)::INTEGER INTO v_surveys_completed
+  FROM public.survey_completions
+  WHERE user_id = user_uuid
+    AND completed_at >= CURRENT_DATE
+    AND completed_at < CURRENT_DATE + INTERVAL '1 day';
+  
+  IF v_surveys_completed >= v_daily_limit THEN
+    RETURN QUERY SELECT FALSE, v_surveys_completed, v_daily_limit, 'Daily survey limit reached';
+    RETURN;
+  END IF;
+  
+  -- Insert survey completion
+  INSERT INTO public.survey_completions (user_id, survey_id, survey_title, reward_amount, completed_at)
+  VALUES (user_uuid, survey_category || '_' || EXTRACT(EPOCH FROM NOW())::TEXT, survey_category, v_reward_amount, NOW());
+  
+  -- Get updated count
+  SELECT COUNT(*)::INTEGER INTO v_surveys_completed
+  FROM public.survey_completions
+  WHERE user_id = user_uuid
+    AND completed_at >= CURRENT_DATE
+    AND completed_at < CURRENT_DATE + INTERVAL '1 day';
+  
+  RETURN QUERY SELECT TRUE, v_surveys_completed, v_daily_limit, 'Survey completed successfully';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to activate user account
+CREATE OR REPLACE FUNCTION public.activate_user_account(user_uuid UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  UPDATE public.profiles
+  SET account_activated = TRUE,
+      activation_date = NOW(),
+      updated_at = NOW()
+  WHERE id = user_uuid;
+  
+  RETURN FOUND;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to upgrade to platinum
+CREATE OR REPLACE FUNCTION public.upgrade_to_platinum(user_uuid UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  UPDATE public.profiles
+  SET is_platinum = TRUE,
+      platinum_upgrade_date = NOW(),
+      updated_at = NOW()
+  WHERE id = user_uuid;
+  
+  RETURN FOUND;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to purchase task package
+CREATE OR REPLACE FUNCTION public.purchase_task_package(user_uuid UUID, package_type TEXT)
+RETURNS BOOLEAN AS $$
+DECLARE
+  v_package_id UUID;
+  v_task_count INTEGER;
+BEGIN
+  -- Get package details
+  SELECT id, task_count INTO v_package_id, v_task_count
+  FROM public.task_packages
+  WHERE name = package_type OR description = package_type;
+  
+  IF v_package_id IS NULL THEN
+    RETURN FALSE;
+  END IF;
+  
+  -- Insert user task package
+  INSERT INTO public.user_task_packages (user_id, package_id, tasks_remaining, purchased_at)
+  VALUES (user_uuid, v_package_id, v_task_count, NOW());
+  
+  RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Grant execute permissions for new functions
+GRANT EXECUTE ON FUNCTION public.complete_survey(UUID, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.activate_user_account(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.upgrade_to_platinum(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.purchase_task_package(UUID, TEXT) TO authenticated;
 
 -- =====================================================
 -- SETUP COMPLETE
