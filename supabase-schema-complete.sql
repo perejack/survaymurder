@@ -546,12 +546,13 @@ RETURNS TABLE (
   success BOOLEAN,
   surveys_completed INTEGER,
   daily_limit INTEGER,
+  show_task_limit_modal BOOLEAN,
   message TEXT
 ) AS $$
 DECLARE
   v_surveys_completed INTEGER;
   v_daily_limit INTEGER := 2;
-  v_reward_amount INTEGER := 150; -- Default reward
+  v_reward_amount INTEGER := 150;
 BEGIN
   -- Check daily limit
   SELECT COUNT(*)::INTEGER INTO v_surveys_completed
@@ -561,7 +562,7 @@ BEGIN
     AND completed_at < CURRENT_DATE + INTERVAL '1 day';
   
   IF v_surveys_completed >= v_daily_limit THEN
-    RETURN QUERY SELECT FALSE, v_surveys_completed, v_daily_limit, 'Daily survey limit reached';
+    RETURN QUERY SELECT FALSE, v_surveys_completed, v_daily_limit, TRUE, 'Daily survey limit reached';
     RETURN;
   END IF;
   
@@ -588,7 +589,7 @@ BEGIN
     AND completed_at >= CURRENT_DATE
     AND completed_at < CURRENT_DATE + INTERVAL '1 day';
   
-  RETURN QUERY SELECT TRUE, v_surveys_completed, v_daily_limit, 'Survey completed successfully';
+  RETURN QUERY SELECT TRUE, v_surveys_completed, v_daily_limit, FALSE, 'Survey completed successfully';
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
