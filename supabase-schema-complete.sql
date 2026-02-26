@@ -526,7 +526,7 @@ BEGIN
       ) < 2 THEN TRUE
       ELSE FALSE
     END as can_complete_survey,
-    CURRENT_DATE + INTERVAL '1 day' as next_survey_available_at;
+    (CURRENT_DATE + INTERVAL '1 day')::TIMESTAMP WITH TIME ZONE as next_survey_available_at;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
