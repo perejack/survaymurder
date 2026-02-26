@@ -76,18 +76,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error: new Error(insertError.message) }
       }
 
-      // Update user_earnings directly
-      const { error: updateError } = await supabase
+      // Fetch current earnings first
+      const { data: currentEarnings, error: fetchError } = await supabase
         .from('user_earnings')
-        .update({
-          total_earnings: supabase.raw('total_earnings + ' + amount),
-          available_balance: supabase.raw('available_balance + ' + amount),
-          updated_at: new Date().toISOString(),
-        })
+        .select('total_earnings, available_balance')
         .eq('user_id', user.id)
-      
-      if (updateError) {
-        console.error('Error updating earnings:', updateError)
+        .single()
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error('Error fetching current earnings:', fetchError)
+      }
+
+      const currentTotal = currentEarnings?.total_earnings || 0
+      const currentBalance = currentEarnings?.available_balance || 0
+
+      // Update user_earnings with new values
+      const { error: upsertError } = await supabase
+        .from('user_earnings')
+        .upsert({
+          user_id: user.id,
+          total_earnings: currentTotal + amount,
+          available_balance: currentBalance + amount,
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id'
+        })
+
+      if (upsertError) {
+        console.error('Error upserting earnings:', upsertError)
       }
 
       await fetchBalance()
