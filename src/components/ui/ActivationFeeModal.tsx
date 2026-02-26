@@ -28,7 +28,7 @@ const ActivationFeeModal = ({
   const [error, setError] = useState('');
   const { toast } = useToast();
   const { activateAccount } = useAuth();
-  const activationFee = 20;
+  const activationFee = 10;
 
   // Lock background scroll when modal is open
   useEffect(() => {
