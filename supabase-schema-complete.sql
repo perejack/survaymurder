@@ -177,12 +177,14 @@ CREATE TABLE IF NOT EXISTS public.earning_transactions (
 -- Enable RLS
 ALTER TABLE public.earning_transactions ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view own earning transactions" 
-  ON public.earning_transactions FOR SELECT 
+DROP POLICY IF EXISTS "Users can view own earning transactions" ON public.earning_transactions;
+CREATE POLICY "Users can view own earning transactions"
+  ON public.earning_transactions FOR SELECT
   USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can insert own earning transactions" 
-  ON public.earning_transactions FOR INSERT 
+DROP POLICY IF EXISTS "Users can insert own earning transactions" ON public.earning_transactions;
+CREATE POLICY "Users can insert own earning transactions"
+  ON public.earning_transactions FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
 -- Index for faster lookups
