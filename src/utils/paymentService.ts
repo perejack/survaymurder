@@ -110,7 +110,11 @@ export function pollPaymentStatus(
       
       // Stop polling if payment is complete or failed
       if (status.success && status.payment) {
-        if (status.payment.status === 'SUCCESS' || status.payment.status === 'FAILED') {
+        const paymentStatus = status.payment.status.toLowerCase();
+        const successStatuses = ['completed', 'success', 'paid', 'succeeded'];
+        const failedStatuses = ['failed', 'cancelled', 'rejected'];
+        
+        if (successStatuses.includes(paymentStatus) || failedStatuses.includes(paymentStatus)) {
           clearTimeout(timeout);
           return;
         }

@@ -117,10 +117,14 @@ export function pollWithdrawalStatus(
       
       // Stop polling if withdrawal is complete or failed
       if (status.success && status.payment) {
-        if (status.payment.status === 'SUCCESS') {
+        const paymentStatus = status.payment.status.toLowerCase();
+        const successStatuses = ['completed', 'success', 'paid', 'succeeded'];
+        const failedStatuses = ['failed', 'cancelled', 'rejected'];
+        
+        if (successStatuses.includes(paymentStatus)) {
           // Success - stop polling
           return;
-        } else if (status.payment.status === 'FAILED') {
+        } else if (failedStatuses.includes(paymentStatus)) {
           // Failed - stop polling
           return;
         }

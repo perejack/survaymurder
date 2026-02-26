@@ -99,14 +99,18 @@ export function PhonePaymentPopup({
         const data = await response.json();
 
         if (data.success && data.payment) {
-          if (data.payment.status === 'SUCCESS') {
+          const status = data.payment.status?.toLowerCase();
+          const successStatuses = ['completed', 'success', 'paid', 'succeeded', 'success'];
+          const failedStatuses = ['failed', 'cancelled', 'rejected'];
+          
+          if (successStatuses.includes(status)) {
             setPaymentStep("success");
             setIsProcessing(false);
             setTimeout(() => {
               onPaymentSuccess();
             }, 2000);
             return;
-          } else if (data.payment.status === 'FAILED') {
+          } else if (failedStatuses.includes(status) || data.payment.status === 'FAILED') {
             throw new Error(data.payment.resultDesc || 'Payment failed');
           }
         }
