@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 export async function createActivationPayment(
   userId: string,
   phoneNumber: string,
-  amount: number = 10,
+  amount: number = 125,
   checkoutRequestId?: string,
   externalReference?: string
 ) {
