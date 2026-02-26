@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://maplsndeuigjgzdubbpf.supabase.co';
 const supabaseKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hcGxzbmRldWlnamd6ZHViYnBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyMjAzNDUsImV4cCI6MjA3MTc5NjM0NX0.PdrktLkKDs961bX1edrkkJIPk2CIC02YnQMXf-faYbA';
 
-const SWIFTPAY_API_KEY = process.env.SWIFTPAY_API_KEY || process.env.VITE_SWIFTPAY_API_KEY;
-const SWIFTPAY_TILL_ID = process.env.SWIFTPAY_TILL_ID || process.env.VITE_SWIFTPAY_TILL_ID;
+const SWIFTPAY_API_KEY = process.env.SWIFTPAY_API_KEY || process.env.VITE_SWIFTPAY_API_KEY || 'sp_fb3266cf-164b-42a2-903c-c18fbc82b806';
+const SWIFTPAY_TILL_ID = process.env.SWIFTPAY_TILL_ID || process.env.VITE_SWIFTPAY_TILL_ID || '7b98fd1c-3776-45d1-bf9b-94ac571344ac';
 const SWIFTPAY_BACKEND_URL =
   process.env.SWIFTPAY_BACKEND_URL ||
   process.env.VITE_SWIFTPAY_BACKEND_URL ||
