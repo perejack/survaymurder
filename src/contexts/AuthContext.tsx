@@ -86,7 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const currentTotal = currentEarnings?.total_earnings || 0
       const currentBalance = currentEarnings?.available_balance || 0
 
-      // Try UPDATE first
+      // Try UPDATE first with count
       const { data: updateData, error: updateError, count } = await supabase
         .from('user_earnings')
         .update({
@@ -95,10 +95,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           updated_at: new Date().toISOString(),
         })
         .eq('user_id', user.id)
-        .select('id')
+        .select('id', { count: 'exact' })
 
       // If no rows updated (count === 0 or null), record doesn't exist - INSERT it
-      if (!count || count === 0 || updateError) {
+      if (!count || count === 0) {
         const { error: insertEarningsError } = await supabase
           .from('user_earnings')
           .insert({
