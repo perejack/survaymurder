@@ -262,7 +262,7 @@ const SurveyPlatform = () => {
               onBack={() => setCurrentView('categories')}
               onStartEarning={() => setCurrentView('categories')}
               completedTasks={surveyStatus.surveys_completed}
-              isAccountActive={surveyStatus.is_account_activated || profile?.account_activated || false}
+              isAccountActive={surveyStatus.is_account_activated || profile?.account_activated || localStorage.getItem('earnspark_account_active') === 'true' || false}
               onAccountActivation={handleAccountActivation}
               // Provide userId and a setter so WithdrawalInterface can advance stage
               userId={user?.id}
