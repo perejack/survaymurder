@@ -600,10 +600,6 @@ const WithdrawalInterface = ({
           });
           // Inform parent to refresh server-side state
           onAccountActivation?.();
-          // Re-run withdrawal flow after account is activated
-          setTimeout(() => {
-            (async () => { await handleWithdraw(); })();
-          }, 100);
         }}
       />
 
