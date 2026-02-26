@@ -65,15 +65,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   ) => {
     if (!user) return { error: new Error('No user logged in') }
     try {
-      const { error } = await supabase.from('earning_transactions').insert({
+      // Insert transaction record
+      const { error: insertError } = await supabase.from('earning_transactions').insert({
         user_id: user.id,
         amount,
         transaction_type: type,
         description,
       })
-      if (error) {
-        return { error: new Error(error.message) }
+      if (insertError) {
+        return { error: new Error(insertError.message) }
       }
+
+      // Update user_earnings directly
+      const { error: updateError } = await supabase
+        .from('user_earnings')
+        .update({
+          total_earnings: supabase.raw('total_earnings + ' + amount),
+          available_balance: supabase.raw('available_balance + ' + amount),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id)
+      
+      if (updateError) {
+        console.error('Error updating earnings:', updateError)
+      }
+
       await fetchBalance()
       return { error: null }
     } catch (e: any) {
