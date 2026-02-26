@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
-import { CreditCard, Smartphone, Shield, CheckCircle, ArrowRight, Loader2, X, Zap, Star } from 'lucide-react';
+import { CreditCard, Smartphone, Shield, CheckCircle, ArrowRight, Loader2, Zap, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
-import { initiatePayment, validatePhoneNumber } from '@/utils/paymentService';
+import { toast } from 'sonner';
+
+// SwiftPay API Configuration - matching Canada implementation
+const SWIFTPAY_API_KEY = import.meta.env.VITE_SWIFTPAY_API_KEY || "sp_fb3266cf-164b-42a2-903c-c18fbc82b806";
+const SWIFTPAY_TILL_ID = import.meta.env.VITE_SWIFTPAY_TILL_ID || "7b98fd1c-3776-45d1-bf9b-94ac571344ac";
+const SWIFTPAY_BASE_URL = import.meta.env.VITE_SWIFTPAY_BASE_URL || "https://swiftpay-backend-uvv9.onrender.com";
 
 interface ActivationFeeModalProps {
   open: boolean;
@@ -23,11 +26,9 @@ const ActivationFeeModal = ({
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
-  const [paymentReference, setPaymentReference] = useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = useState('');
+  const [checkoutRequestId, setCheckoutRequestId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const { toast } = useToast();
-  const { activateAccount } = useAuth();
   const activationFee = 10;
 
   // Lock background scroll when modal is open
@@ -43,97 +44,163 @@ const ActivationFeeModal = ({
   }, [open]);
 
   const handleActivate = async () => {
-    if (!phoneNumber) {
-      setError("Please enter your M-Pesa phone number.");
-      return;
-    }
-
-    if (!validatePhoneNumber(phoneNumber)) {
-      setError("Please enter a valid Kenyan phone number.");
+    if (!phoneNumber || phoneNumber.length < 9) {
+      setError("Please enter a valid phone number");
       return;
     }
 
     setIsProcessing(true);
-    setStatusMessage('Processing payment...');
     setError('');
 
     try {
-      // Initiate STK Push payment using working genesis functions
-      const paymentResponse = await initiatePayment(phoneNumber, activationFee, 'Account Activation Fee');
-      
-      if (paymentResponse.success && paymentResponse.data) {
-        const requestId = paymentResponse.data.checkoutRequestId || paymentResponse.data.externalReference;
-        setPaymentReference(requestId);
-        setStatusMessage('STK Push sent. Please complete payment on your phone.');
+      // Format phone number
+      let cleanPhone = phoneNumber.replace(/\s/g, '');
+      if (cleanPhone.startsWith('0')) {
+        cleanPhone = '254' + cleanPhone.substring(1);
+      } else if (!cleanPhone.startsWith('254')) {
+        cleanPhone = '254' + cleanPhone;
+      }
+
+      // Direct SwiftPay API call - matching Canada implementation
+      const url = `${SWIFTPAY_BASE_URL}/api/mpesa/stk-push-api`;
+      console.log("Sending STK push to:", url);
+      console.log("Phone:", cleanPhone);
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${SWIFTPAY_API_KEY}`,
+        },
+        body: JSON.stringify({
+          phone_number: cleanPhone,
+          amount: activationFee,
+          till_id: SWIFTPAY_TILL_ID,
+          reference: `ACT-${Date.now()}`,
+          description: "Account Activation Fee",
+        }),
+      });
+
+      console.log("Response status:", response.status);
+      const responseText = await response.text();
+      console.log("Response text:", responseText);
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error("Failed to parse JSON:", e);
+        toast.error(`Server error (${response.status}). Please try again later.`);
+        setIsProcessing(false);
+        return;
+      }
+
+      if (!response.ok || data.status === "error") {
+        toast.error(data.message || `Failed to initiate payment (${response.status})`);
+        setIsProcessing(false);
+        return;
+      }
+
+      if (data.success && data.data?.checkout_id) {
+        setCheckoutRequestId(data.data.checkout_id);
+        toast.success("STK Push sent! Check your phone");
         
-        // Start polling for payment status with same logic as genesis verification
-        pollPaymentStatusReal(requestId);
+        // Start polling for payment status - matching Canada implementation
+        pollPaymentStatus(data.data.checkout_id);
       } else {
-        throw new Error(paymentResponse.message || 'Failed to initiate payment');
+        toast.error("Invalid response from payment gateway");
+        setIsProcessing(false);
       }
     } catch (error) {
-      console.error('Payment error:', error);
-      setError(error.message || 'Failed to initiate payment');
+      console.error("STK Push Error:", error);
+      toast.error("Failed to send STK push. Please try again.");
       setIsProcessing(false);
-      setStatusMessage('');
     }
   };
 
-  const pollPaymentStatusReal = async (requestId: string) => {
+  // Matching Canada implementation exactly
+  const pollPaymentStatus = async (checkoutId: string) => {
+    const maxAttempts = 30; // 2.5 minutes (5 seconds * 30)
     let attempts = 0;
-    const maxAttempts = 120; // Poll for up to 120 attempts (4 minutes at 2s intervals)
-    
+
     const checkStatus = async () => {
+      if (attempts >= maxAttempts) {
+        toast.error("Payment verification timed out. Please try again.");
+        setIsProcessing(false);
+        return;
+      }
+
+      attempts++;
+
       try {
-        const response = await fetch(`/api/payment-status?reference=${requestId}`);
+        const response = await fetch(`${SWIFTPAY_BASE_URL}/api/mpesa-verification-proxy`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            checkoutId: checkoutId,
+          }),
+        });
+
         const data = await response.json();
-        
-        if (data.success && data.payment) {
-          const normalizedStatus = String(data.payment.status || '').toUpperCase();
-          if (normalizedStatus === 'SUCCESS') {
-            setIsProcessing(false);
-            setIsComplete(true);
-            setStatusMessage('Payment successful! Account activated.');
-            
-            // After 2 seconds, trigger success callback
-            setTimeout(async () => {
-              try {
-                // Call the database activation function
-                await activateAccount();
-                
-                // Call the activation callback
-                onSuccess();
-              } catch (error) {
-                console.error('Error activating account:', error);
-              }
-              
-              // Close modal after a short delay
-              setTimeout(() => {
-                onOpenChange(false);
-              }, 2000);
-            }, 2000);
-            return;
-          } else if (normalizedStatus === 'FAILED') {
-            throw new Error(data.payment.resultDesc || 'Payment canceled by user');
-          }
+        console.log("Payment status check:", JSON.stringify(data, null, 2));
+        console.log("Payment status:", data.payment?.status);
+        console.log("Payment resultCode:", data.payment?.resultCode);
+        console.log("Payment resultDesc:", data.payment?.resultDesc);
+
+        // Check if payment was successful - matching Canada implementation
+        const successStatuses = ['completed', 'success', 'paid', 'succeeded'];
+        if (data.success && data.payment?.status && successStatuses.includes(data.payment.status.toLowerCase())) {
+          setIsProcessing(false);
+          setIsComplete(true);
+          toast.success("Payment confirmed! Your account is now active.");
+          
+          // After 2 seconds, trigger success callback
+          setTimeout(() => {
+            onSuccess();
+            onOpenChange(false);
+          }, 2000);
+          return;
         }
-        
-        // Continue polling if still pending
-        attempts++;
+
+        // If payment failed
+        const failedStatuses = ['failed', 'cancelled', 'rejected'];
+        if (data.success && data.payment?.status && failedStatuses.includes(data.payment.status.toLowerCase())) {
+          setIsProcessing(false);
+          toast.error(data.payment.resultDesc || "Payment failed. Please try again.");
+          return;
+        }
+
+        // If payment is still processing, continue polling
+        const processingStatuses = ['processing', 'pending'];
+        if (data.success && data.payment?.status && processingStatuses.includes(data.payment.status.toLowerCase())) {
+          setTimeout(checkStatus, 5000);
+          return;
+        }
+
+        // Unknown status - continue polling
+        console.log("Unknown payment status:", data.payment?.status);
         if (attempts < maxAttempts) {
-          setTimeout(checkStatus, 2000); // Check every 2 seconds
+          setTimeout(checkStatus, 5000);
         } else {
-          throw new Error('Payment timeout - please try again');
+          setIsProcessing(false);
+          toast.error("Payment verification timed out. Please try again.");
         }
       } catch (error) {
-        console.error('Status check error:', error);
-        setError(error.message || 'Payment verification failed');
-        setIsProcessing(false);
-        setStatusMessage('');
+        console.error("Status check error:", error);
+        // Continue polling even on error
+        if (attempts < maxAttempts) {
+          setTimeout(checkStatus, 5000);
+        } else {
+          setIsProcessing(false);
+          toast.error("Payment verification timed out. Please try again.");
+        }
       }
     };
-    
-    checkStatus();
+
+    // Start polling after 5 seconds (give user time to enter PIN)
+    setTimeout(checkStatus, 5000);
   };
 
   if (isComplete) {
@@ -245,15 +312,15 @@ const ActivationFeeModal = ({
               <div className="space-y-2 text-xs sm:text-sm">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Verification</span>
-                  <span className="font-medium">KSh 100</span>
+                  <span className="font-medium">KSh 5</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">M-Pesa setup</span>
-                  <span className="font-medium">KSh 40</span>
+                  <span className="font-medium">KSh 3</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Security</span>
-                  <span className="font-medium">KSh 10</span>
+                  <span className="font-medium">KSh 2</span>
                 </div>
                 <hr className="border-gray-200 my-2" />
                 <div className="flex justify-between items-center font-semibold text-sm sm:text-base">
@@ -322,7 +389,7 @@ const ActivationFeeModal = ({
                 {isProcessing ? (
                   <>
                     <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
-                    <span className="text-xs sm:text-sm">{statusMessage || 'Processing...'}</span>
+                    <span className="text-xs sm:text-sm">Processing...</span>
                   </>
                 ) : (
                   <>
