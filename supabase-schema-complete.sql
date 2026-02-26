@@ -162,6 +162,36 @@ CREATE TRIGGER on_profile_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_profile();
 
 -- =====================================================
+-- 3b. EARNING TRANSACTIONS (for detailed transaction history)
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS public.earning_transactions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  amount INTEGER NOT NULL,
+  transaction_type TEXT NOT NULL DEFAULT 'survey', -- survey, bonus, withdrawal, adjustment
+  description TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE public.earning_transactions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own earning transactions" 
+  ON public.earning_transactions FOR SELECT 
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own earning transactions" 
+  ON public.earning_transactions FOR INSERT 
+  WITH CHECK (auth.uid() = user_id);
+
+-- Index for faster lookups
+CREATE INDEX IF NOT EXISTS idx_earning_transactions_user_id 
+  ON public.earning_transactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_earning_transactions_created_at 
+  ON public.earning_transactions(created_at);
+
+-- =====================================================
 -- 4. SURVEY COMPLETIONS & TASKS
 -- =====================================================
 
