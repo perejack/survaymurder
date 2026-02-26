@@ -363,13 +363,13 @@ CREATE INDEX IF NOT EXISTS idx_daily_limits_user_date
   ON public.daily_survey_limits(user_id, survey_date);
 
 -- Function to increment survey count
-CREATE OR REPLACE FUNCTION public.increment_survey_count(p_user_id UUID)
+CREATE OR REPLACE FUNCTION public.increment_survey_count(user_uuid UUID)
 RETURNS INTEGER AS $$
 DECLARE
   v_count INTEGER;
 BEGIN
   INSERT INTO public.daily_survey_limits (user_id, survey_date, surveys_completed)
-  VALUES (p_user_id, CURRENT_DATE, 1)
+  VALUES (user_uuid, CURRENT_DATE, 1)
   ON CONFLICT (user_id, survey_date)
   DO UPDATE SET 
     surveys_completed = public.daily_survey_limits.surveys_completed + 1,
@@ -425,7 +425,7 @@ CREATE POLICY "Users can view own task packages"
 -- =====================================================
 
 -- Function to get user stats (for admin use)
-CREATE OR REPLACE FUNCTION public.get_user_stats(p_user_id UUID)
+CREATE OR REPLACE FUNCTION public.get_user_stats(user_uuid UUID)
 RETURNS TABLE (
   total_earnings INTEGER,
   available_balance INTEGER,
@@ -443,14 +443,14 @@ BEGIN
     COALESCE(
       (SELECT COUNT(*)::INTEGER 
        FROM public.survey_completions sc 
-       WHERE sc.user_id = p_user_id),
+       WHERE sc.user_id = user_uuid),
       0
     ) as surveys_completed,
     p.account_activated,
     p.is_platinum
   FROM public.user_earnings ue
   JOIN public.profiles p ON p.id = ue.user_id
-  WHERE ue.user_id = p_user_id;
+  WHERE ue.user_id = user_uuid;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
