@@ -17,7 +17,7 @@ const EarningsDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const activationFee = 10; // set from UI/config as needed
+  const activationFee = 125; // set from UI/config as needed
 
   useEffect(() => {
     // Get current user and check activation status
