@@ -249,7 +249,7 @@ export function PhonePaymentPopup({
                         Activate Your Account
                       </h2>
                       <p className="text-sm text-gray-300">
-                        A one-time 125 KSH activation fee is required.
+                        A one-time {amount} KSH activation fee is required.
                       </p>
                     </div>
                     <div className="mb-6">
