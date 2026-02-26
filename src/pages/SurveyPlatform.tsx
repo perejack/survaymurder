@@ -17,7 +17,7 @@ const SurveyPlatform = () => {
   const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<'categories' | 'survey' | 'earnings' | 'withdrawal'>('categories');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const { user, balance, profile, getSurveyStatus, completeSurvey, addEarning } = useAuth();
+  const { user, balance, profile, getSurveyStatus, completeSurvey, addEarning, fetchProfile } = useAuth();
   const [totalEarnings, setTotalEarnings] = useState(0);
   const [showMinimumModal, setShowMinimumModal] = useState(false);
   const [showTaskLimitModal, setShowTaskLimitModal] = useState(false);
@@ -169,6 +169,9 @@ const SurveyPlatform = () => {
   };
 
   const handleAccountActivation = async () => {
+    if (user) {
+      await fetchProfile(user.id); // Refresh profile to get updated activation status
+    }
     await loadSurveyStatus(); // Refresh status after activation
   };
 

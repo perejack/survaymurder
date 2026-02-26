@@ -394,6 +394,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signIn,
     signOut,
     updateProfile,
+    fetchProfile,
     addEarning,
     getSurveyStatus,
     completeSurvey,
