@@ -13,7 +13,7 @@ const EarningsDashboard = () => {
   const [completedTasks, setCompletedTasks] = useState(0);
   const [isAccountActive, setIsAccountActive] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const activationFee = 150; // set from UI/config as needed
+  const activationFee = 10; // set from UI/config as needed
 
   useEffect(() => {
     // Removed fake earning counters to comply with advertising policies
@@ -62,12 +62,12 @@ const EarningsDashboard = () => {
                 </div>
                 <h3 className="text-2xl font-bold mb-4">Activate Your Account (Refundable)</h3>
                 <p className="text-muted-foreground mb-4">
-                  One-time activation fee of KSh 125 is required to verify your account.
+                  One-time activation fee of KSh {activationFee} is required to verify your account.
                 </p>
                 <div className="bg-success/10 border border-success/30 rounded-lg p-3 mb-6">
                   <p className="text-sm text-success font-semibold mb-1">💰 Fee is 100% Refundable!</p>
                   <p className="text-sm text-muted-foreground">
-                    Your KSh 125 activation fee will be refunded to your account balance once you reach 
+                    Your KSh {activationFee} activation fee will be refunded to your account balance once you reach 
                     the minimum withdrawal threshold. This helps us verify serious users while ensuring 
                     you don't lose any money.
                   </p>
