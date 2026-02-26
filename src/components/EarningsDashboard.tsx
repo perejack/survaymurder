@@ -11,7 +11,10 @@ const EarningsDashboard = () => {
   const [todayEarnings, setTodayEarnings] = useState(0);
   const [weeklyEarnings, setWeeklyEarnings] = useState(0);
   const [completedTasks, setCompletedTasks] = useState(0);
-  const [isAccountActive, setIsAccountActive] = useState(false);
+  const [isAccountActive, setIsAccountActive] = useState(() => {
+    const stored = localStorage.getItem('earnspark_account_active');
+    return stored ? JSON.parse(stored) : false;
+  });
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const activationFee = 10; // set from UI/config as needed
 
@@ -22,6 +25,7 @@ const EarningsDashboard = () => {
 
   const handlePaymentSuccess = () => {
     setIsAccountActive(true);
+    localStorage.setItem('earnspark_account_active', 'true');
     setIsPopupOpen(false);
   };
 
