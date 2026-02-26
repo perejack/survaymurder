@@ -135,7 +135,7 @@ CREATE TRIGGER on_activation_payment_updated
 
 CREATE TABLE IF NOT EXISTS public.user_earnings (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
   total_earnings INTEGER DEFAULT 0,
   available_balance INTEGER DEFAULT 0,
   pending_balance INTEGER DEFAULT 0,
