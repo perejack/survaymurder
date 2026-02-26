@@ -65,7 +65,11 @@ const WithdrawalInterface = ({
     failed: false,
   };
   const [showWithdrawalSuccessModal, setShowWithdrawalSuccessModal] = useState(false);
-  const [isAccountActive, setIsAccountActive] = useState(propIsAccountActive);
+  const [isAccountActive, setIsAccountActive] = useState(() => {
+    // Check localStorage first, then fall back to prop
+    const stored = localStorage.getItem('earnspark_account_active');
+    return stored ? JSON.parse(stored) : propIsAccountActive;
+  });
   const [isPlatinumUser, setIsPlatinumUser] = useState(false);
   const [completedTasks, setCompletedTasks] = useState(propCompletedTasks);
   
@@ -538,6 +542,8 @@ const WithdrawalInterface = ({
         onSuccess={() => {
           // Mark account active FIRST before any other logic
           setIsAccountActive(true);
+          // Persist to localStorage so activation survives page reloads
+          localStorage.setItem('earnspark_account_active', 'true');
           // Close fee modal
           setShowActivationFeeModal(false);
           toast({
