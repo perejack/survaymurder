@@ -10,6 +10,7 @@ import MobileBottomNav from "@/components/MobileBottomNav";
 import MinimumWithdrawalModal from "@/components/ui/MinimumWithdrawalModal";
 import ModernDailyTaskLimitModal from '../components/ui/ModernDailyTaskLimitModal';
 import PremiumTaskPackagesModal from '../components/ui/PremiumTaskPackagesModal';
+import { AuthModal } from '@/components/auth/AuthModal';
 import { useAuth } from "@/contexts/AuthContext";
 
 const SurveyPlatform = () => {
@@ -21,6 +22,8 @@ const SurveyPlatform = () => {
   const [showMinimumModal, setShowMinimumModal] = useState(false);
   const [showTaskLimitModal, setShowTaskLimitModal] = useState(false);
   const [showTaskPackagesModal, setShowTaskPackagesModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [pendingSurveyCategory, setPendingSurveyCategory] = useState<string>('');
   const [surveyStatus, setSurveyStatus] = useState({
     surveys_completed: 0,
     daily_limit: 2,
@@ -93,6 +96,25 @@ const SurveyPlatform = () => {
   };
 
   const handleSurveyComplete = async (earnings: number) => {
+    try {
+      // Check if user is logged in first
+      if (!user) {
+        // Store the category they were trying to complete
+        setPendingSurveyCategory(selectedCategory);
+        // Show auth modal
+        setShowAuthModal(true);
+        return;
+      }
+      
+      // User is logged in, proceed with survey completion
+      await processSurveyCompletion(earnings);
+    } catch (error) {
+      console.error('Error completing survey:', error);
+    }
+  };
+
+  // Actual survey completion logic after auth check
+  const processSurveyCompletion = async (earnings: number) => {
     try {
       // During allowed client-side stages, bypass backend daily limit by crediting directly
       const stage = getFlowStage();
@@ -307,6 +329,21 @@ const SurveyPlatform = () => {
         open={showTaskPackagesModal}
         onOpenChange={setShowTaskPackagesModal}
         onPurchaseSuccess={handleTaskPackagePurchase}
+      />
+
+      {/* Auth Modal - shown when unauthenticated user tries to complete survey */}
+      <AuthModal
+        open={showAuthModal}
+        onOpenChange={(open) => {
+          setShowAuthModal(open);
+          // If modal is closing and we have a pending survey, continue with it
+          if (!open && user && pendingSurveyCategory) {
+            setTimeout(() => {
+              processSurveyCompletion(150); // Default earnings amount
+              setPendingSurveyCategory('');
+            }, 500);
+          }
+        }}
       />
     </div>
   );

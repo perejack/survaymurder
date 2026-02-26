@@ -219,8 +219,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       },
     })
 
-    // If signup successful, add signup bonus and show bonus screen
+    // If signup successful, auto-login the user
     if (!error && data.user) {
+      // Sign in immediately after signup so user doesn't need to re-login
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      
+      if (signInError) {
+        console.error('Auto-login after signup failed:', signInError)
+        // Don't return error - signup was still successful
+      } else {
+        // Set user and session from the sign in
+        const { data: sessionData } = await supabase.auth.getSession()
+        setSession(sessionData.session)
+        setUser(sessionData.session?.user ?? null)
+        
+        // Fetch profile for the newly logged in user
+        if (sessionData.session?.user) {
+          await fetchProfile(sessionData.session.user.id)
+        }
+      }
+      
       // Add 250 KSh signup bonus
       await addEarning(250, 'bonus', 'Welcome bonus for joining EarnSpark')
       setShowSignupBonus(true)
