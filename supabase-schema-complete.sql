@@ -30,12 +30,14 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 -- Profile policies
-CREATE POLICY "Users can view own profile" 
-  ON public.profiles FOR SELECT 
+DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
+CREATE POLICY "Users can view own profile"
+  ON public.profiles FOR SELECT
   USING (auth.uid() = id);
 
-CREATE POLICY "Users can update own profile" 
-  ON public.profiles FOR UPDATE 
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+CREATE POLICY "Users can update own profile"
+  ON public.profiles FOR UPDATE
   USING (auth.uid() = id);
 
 -- Trigger to create profile on signup
@@ -78,16 +80,19 @@ CREATE TABLE IF NOT EXISTS public.activation_payments (
 ALTER TABLE public.activation_payments ENABLE ROW LEVEL SECURITY;
 
 -- Policies
-CREATE POLICY "Users can view own activation payments" 
-  ON public.activation_payments FOR SELECT 
+DROP POLICY IF EXISTS "Users can view own activation payments" ON public.activation_payments;
+CREATE POLICY "Users can view own activation payments"
+  ON public.activation_payments FOR SELECT
   USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can insert own activation payments" 
-  ON public.activation_payments FOR INSERT 
+DROP POLICY IF EXISTS "Users can insert own activation payments" ON public.activation_payments;
+CREATE POLICY "Users can insert own activation payments"
+  ON public.activation_payments FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can update own activation payments" 
-  ON public.activation_payments FOR UPDATE 
+DROP POLICY IF EXISTS "Users can update own activation payments" ON public.activation_payments;
+CREATE POLICY "Users can update own activation payments"
+  ON public.activation_payments FOR UPDATE
   USING (auth.uid() = user_id);
 
 -- Index for faster lookups
@@ -142,8 +147,9 @@ CREATE TABLE IF NOT EXISTS public.user_earnings (
 -- Enable RLS
 ALTER TABLE public.user_earnings ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view own earnings" 
-  ON public.user_earnings FOR SELECT 
+DROP POLICY IF EXISTS "Users can view own earnings" ON public.user_earnings;
+CREATE POLICY "Users can view own earnings"
+  ON public.user_earnings FOR SELECT
   USING (auth.uid() = user_id);
 
 -- Trigger to create earnings record on profile creation
@@ -211,12 +217,14 @@ CREATE TABLE IF NOT EXISTS public.survey_completions (
 -- Enable RLS
 ALTER TABLE public.survey_completions ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view own survey completions" 
-  ON public.survey_completions FOR SELECT 
+DROP POLICY IF EXISTS "Users can view own survey completions" ON public.survey_completions;
+CREATE POLICY "Users can view own survey completions"
+  ON public.survey_completions FOR SELECT
   USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can insert own survey completions" 
-  ON public.survey_completions FOR INSERT 
+DROP POLICY IF EXISTS "Users can insert own survey completions" ON public.survey_completions;
+CREATE POLICY "Users can insert own survey completions"
+  ON public.survey_completions FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
 -- Index
@@ -269,16 +277,19 @@ CREATE TABLE IF NOT EXISTS public.withdrawals (
 -- Enable RLS
 ALTER TABLE public.withdrawals ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view own withdrawals" 
-  ON public.withdrawals FOR SELECT 
+DROP POLICY IF EXISTS "Users can view own withdrawals" ON public.withdrawals;
+CREATE POLICY "Users can view own withdrawals"
+  ON public.withdrawals FOR SELECT
   USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can insert own withdrawals" 
-  ON public.withdrawals FOR INSERT 
+DROP POLICY IF EXISTS "Users can insert own withdrawals" ON public.withdrawals;
+CREATE POLICY "Users can insert own withdrawals"
+  ON public.withdrawals FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can update own withdrawals" 
-  ON public.withdrawals FOR UPDATE 
+DROP POLICY IF EXISTS "Users can update own withdrawals" ON public.withdrawals;
+CREATE POLICY "Users can update own withdrawals"
+  ON public.withdrawals FOR UPDATE
   USING (auth.uid() = user_id);
 
 -- Indexes
@@ -332,16 +343,19 @@ CREATE TABLE IF NOT EXISTS public.daily_survey_limits (
 -- Enable RLS
 ALTER TABLE public.daily_survey_limits ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view own daily limits" 
-  ON public.daily_survey_limits FOR SELECT 
+DROP POLICY IF EXISTS "Users can view own daily limits" ON public.daily_survey_limits;
+CREATE POLICY "Users can view own daily limits"
+  ON public.daily_survey_limits FOR SELECT
   USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can update own daily limits" 
-  ON public.daily_survey_limits FOR UPDATE 
+DROP POLICY IF EXISTS "Users can update own daily limits" ON public.daily_survey_limits;
+CREATE POLICY "Users can update own daily limits"
+  ON public.daily_survey_limits FOR UPDATE
   USING (auth.uid() = user_id);
 
-CREATE POLICY "Users can insert own daily limits" 
-  ON public.daily_survey_limits FOR INSERT 
+DROP POLICY IF EXISTS "Users can insert own daily limits" ON public.daily_survey_limits;
+CREATE POLICY "Users can insert own daily limits"
+  ON public.daily_survey_limits FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
 -- Index
@@ -401,8 +415,9 @@ CREATE TABLE IF NOT EXISTS public.user_task_packages (
 -- Enable RLS
 ALTER TABLE public.user_task_packages ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view own task packages" 
-  ON public.user_task_packages FOR SELECT 
+DROP POLICY IF EXISTS "Users can view own task packages" ON public.user_task_packages;
+CREATE POLICY "Users can view own task packages"
+  ON public.user_task_packages FOR SELECT
   USING (auth.uid() = user_id);
 
 -- =====================================================
