@@ -76,34 +76,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error: new Error(insertError.message) }
       }
 
-      // Fetch current earnings first
-      const { data: currentEarnings, error: fetchError } = await supabase
+      // Fetch current earnings
+      const { data: currentEarnings } = await supabase
         .from('user_earnings')
         .select('total_earnings, available_balance')
         .eq('user_id', user.id)
-        .single()
-
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        console.error('Error fetching current earnings:', fetchError)
-      }
+        .maybeSingle()
 
       const currentTotal = currentEarnings?.total_earnings || 0
       const currentBalance = currentEarnings?.available_balance || 0
 
-      // Update user_earnings with new values
-      const { error: upsertError } = await supabase
+      // Try UPDATE first
+      const { error: updateError } = await supabase
         .from('user_earnings')
-        .upsert({
-          user_id: user.id,
+        .update({
           total_earnings: currentTotal + amount,
           available_balance: currentBalance + amount,
           updated_at: new Date().toISOString(),
-        }, {
-          onConflict: 'user_id'
         })
+        .eq('user_id', user.id)
 
-      if (upsertError) {
-        console.error('Error upserting earnings:', upsertError)
+      // If no rows updated, record doesn't exist - INSERT it
+      if (updateError || !currentEarnings) {
+        const { error: insertEarningsError } = await supabase
+          .from('user_earnings')
+          .insert({
+            user_id: user.id,
+            total_earnings: amount,
+            available_balance: amount,
+            pending_balance: 0,
+            withdrawn_total: 0,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+        if (insertEarningsError && insertEarningsError.code !== '23505') {
+          console.error('Error inserting earnings:', insertEarningsError)
+        }
       }
 
       await fetchBalance()
