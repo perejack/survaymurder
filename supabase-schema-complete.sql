@@ -496,7 +496,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to get daily survey status
-CREATE OR REPLACE FUNCTION public.get_daily_survey_status(p_user_uuid UUID)
+CREATE OR REPLACE FUNCTION public.get_daily_survey_status(user_uuid UUID)
 RETURNS TABLE (
   surveys_completed INTEGER,
   daily_limit INTEGER,
@@ -509,7 +509,7 @@ BEGIN
     COALESCE(
       (SELECT COUNT(*)::INTEGER 
        FROM public.survey_completions 
-       WHERE user_id = p_user_uuid 
+       WHERE user_id = user_uuid 
        AND completed_at >= CURRENT_DATE 
        AND completed_at < CURRENT_DATE + INTERVAL '1 day'),
       0
@@ -519,7 +519,7 @@ BEGIN
       WHEN COALESCE(
         (SELECT COUNT(*)::INTEGER 
          FROM public.survey_completions 
-         WHERE user_id = p_user_uuid 
+         WHERE user_id = user_uuid 
          AND completed_at >= CURRENT_DATE 
          AND completed_at < CURRENT_DATE + INTERVAL '1 day'),
         0
