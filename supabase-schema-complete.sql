@@ -565,9 +565,21 @@ BEGIN
     RETURN;
   END IF;
   
+  -- Ensure user_earnings record exists (create if missing)
+  INSERT INTO public.user_earnings (user_id, total_earnings, available_balance, pending_balance, withdrawn_total, created_at, updated_at)
+  VALUES (user_uuid, 0, 0, 0, 0, NOW(), NOW())
+  ON CONFLICT (user_id) DO NOTHING;
+  
   -- Insert survey completion
   INSERT INTO public.survey_completions (user_id, survey_id, survey_title, reward_amount, completed_at)
   VALUES (user_uuid, survey_category || '_' || EXTRACT(EPOCH FROM NOW())::TEXT, survey_category, v_reward_amount, NOW());
+  
+  -- Update earnings directly (in case trigger fails)
+  UPDATE public.user_earnings 
+  SET total_earnings = total_earnings + v_reward_amount,
+      available_balance = available_balance + v_reward_amount,
+      updated_at = NOW()
+  WHERE user_id = user_uuid;
   
   -- Get updated count
   SELECT COUNT(*)::INTEGER INTO v_surveys_completed
