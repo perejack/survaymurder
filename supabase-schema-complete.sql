@@ -446,9 +446,76 @@ ALTER TABLE public.activation_payments REPLICA IDENTITY FULL;
 ALTER TABLE public.withdrawals REPLICA IDENTITY FULL;
 ALTER TABLE public.user_earnings REPLICA IDENTITY FULL;
 ALTER TABLE public.survey_completions REPLICA IDENTITY FULL;
+ALTER TABLE public.earning_transactions REPLICA IDENTITY FULL;
 
 -- Add tables to realtime publication (if not already added)
 -- Note: This requires supabase_realtime extension to be enabled
+
+-- =====================================================
+-- 9. RPC FUNCTIONS (for frontend)
+-- =====================================================
+
+-- Function to get current user's balance
+CREATE OR REPLACE FUNCTION public.get_current_user_balance()
+RETURNS INTEGER AS $$
+DECLARE
+  user_uuid UUID;
+  balance INTEGER;
+BEGIN
+  -- Get the current user ID
+  user_uuid := auth.uid();
+  
+  IF user_uuid IS NULL THEN
+    RETURN 0;
+  END IF;
+  
+  -- Get available balance
+  SELECT COALESCE(available_balance, 0) INTO balance
+  FROM public.user_earnings
+  WHERE user_id = user_uuid;
+  
+  RETURN COALESCE(balance, 0);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to get daily survey status
+CREATE OR REPLACE FUNCTION public.get_daily_survey_status(p_user_uuid UUID)
+RETURNS TABLE (
+  surveys_completed INTEGER,
+  daily_limit INTEGER,
+  can_complete_survey BOOLEAN,
+  next_survey_available_at TIMESTAMP WITH TIME ZONE
+) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    COALESCE(
+      (SELECT COUNT(*)::INTEGER 
+       FROM public.survey_completions 
+       WHERE user_id = p_user_uuid 
+       AND completed_at >= CURRENT_DATE 
+       AND completed_at < CURRENT_DATE + INTERVAL '1 day'),
+      0
+    ) as surveys_completed,
+    2 as daily_limit, -- Default daily limit of 2 surveys
+    CASE 
+      WHEN COALESCE(
+        (SELECT COUNT(*)::INTEGER 
+         FROM public.survey_completions 
+         WHERE user_id = p_user_uuid 
+         AND completed_at >= CURRENT_DATE 
+         AND completed_at < CURRENT_DATE + INTERVAL '1 day'),
+        0
+      ) < 2 THEN TRUE
+      ELSE FALSE
+    END as can_complete_survey,
+    CURRENT_DATE + INTERVAL '1 day' as next_survey_available_at;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Grant execute permissions
+GRANT EXECUTE ON FUNCTION public.get_current_user_balance() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_daily_survey_status(UUID) TO authenticated;
 
 -- =====================================================
 -- SETUP COMPLETE

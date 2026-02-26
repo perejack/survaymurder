@@ -162,7 +162,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error, status } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .select('*')
         .eq('id', userId)
         .single()
@@ -180,7 +180,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const defaultEmail = authUser?.email || ''
 
           const { data: created, error: insertError } = await supabase
-            .from('user_profiles')
+            .from('profiles')
             .insert({
               id: userId,
               username: defaultUsername,
