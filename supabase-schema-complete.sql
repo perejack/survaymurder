@@ -607,18 +607,28 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Function to add earnings (handles upsert)
 CREATE OR REPLACE FUNCTION public.add_earnings(user_uuid UUID, amount INTEGER, transaction_type TEXT DEFAULT 'survey', description TEXT DEFAULT '')
 RETURNS BOOLEAN AS $$
+DECLARE
+  v_exists BOOLEAN;
 BEGIN
   -- Insert transaction record
   INSERT INTO public.earning_transactions (user_id, amount, transaction_type, description)
   VALUES (user_uuid, amount, transaction_type, description);
 
-  -- Update or insert earnings
-  INSERT INTO public.user_earnings (user_id, total_earnings, available_balance, pending_balance, withdrawn_total, created_at, updated_at)
-  VALUES (user_uuid, amount, amount, 0, 0, NOW(), NOW())
-  ON CONFLICT (user_id) DO UPDATE SET
-    total_earnings = public.user_earnings.total_earnings + amount,
-    available_balance = public.user_earnings.available_balance + amount,
-    updated_at = NOW();
+  -- Check if user_earnings record exists
+  SELECT EXISTS(SELECT 1 FROM public.user_earnings WHERE user_id = user_uuid) INTO v_exists;
+
+  IF v_exists THEN
+    -- Update existing record
+    UPDATE public.user_earnings 
+    SET total_earnings = total_earnings + amount,
+        available_balance = available_balance + amount,
+        updated_at = NOW()
+    WHERE user_id = user_uuid;
+  ELSE
+    -- Insert new record
+    INSERT INTO public.user_earnings (user_id, total_earnings, available_balance, pending_balance, withdrawn_total, created_at, updated_at)
+    VALUES (user_uuid, amount, amount, 0, 0, NOW(), NOW());
+  END IF;
 
   RETURN TRUE;
 EXCEPTION
