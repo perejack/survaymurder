@@ -152,6 +152,17 @@ CREATE POLICY "Users can view own earnings"
   ON public.user_earnings FOR SELECT
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can insert own earnings" ON public.user_earnings;
+CREATE POLICY "Users can insert own earnings"
+  ON public.user_earnings FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can update own earnings" ON public.user_earnings;
+CREATE POLICY "Users can update own earnings"
+  ON public.user_earnings FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
 -- Trigger to create earnings record on profile creation
 CREATE OR REPLACE FUNCTION public.handle_new_profile()
 RETURNS TRIGGER AS $$
