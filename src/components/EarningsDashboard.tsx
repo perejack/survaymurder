@@ -5,27 +5,49 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { PhonePaymentPopup } from "@/components/survey/PhonePaymentPopup";
 import { useNavigate } from "react-router-dom";
+import { isAccountActivated, activateUserAccount } from "@/services/activationService";
+import { supabase } from "@/lib/supabase";
 
 const EarningsDashboard = () => {
   const navigate = useNavigate();
   const [todayEarnings, setTodayEarnings] = useState(0);
   const [weeklyEarnings, setWeeklyEarnings] = useState(0);
   const [completedTasks, setCompletedTasks] = useState(0);
-  const [isAccountActive, setIsAccountActive] = useState(() => {
-    const stored = localStorage.getItem('earnspark_account_active');
-    return stored ? JSON.parse(stored) : false;
-  });
+  const [isAccountActive, setIsAccountActive] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const activationFee = 10; // set from UI/config as needed
 
   useEffect(() => {
-    // Removed fake earning counters to comply with advertising policies
-    // Real earnings should come from actual user data
-  }, [isAccountActive]);
+    // Get current user and check activation status
+    const checkActivation = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+        try {
+          const activated = await isAccountActivated(user.id);
+          setIsAccountActive(activated);
+        } catch (error) {
+          console.error('Error checking activation:', error);
+        }
+      }
+      setIsLoading(false);
+    };
 
-  const handlePaymentSuccess = () => {
+    checkActivation();
+  }, []);
+
+  const handlePaymentSuccess = async () => {
     setIsAccountActive(true);
-    localStorage.setItem('earnspark_account_active', 'true');
+    // Activate in database if userId exists
+    if (userId) {
+      try {
+        await activateUserAccount(userId);
+      } catch (error) {
+        console.error('Error activating account in database:', error);
+      }
+    }
     setIsPopupOpen(false);
   };
 

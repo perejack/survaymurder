@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { isAccountActivated, activateUserAccount, subscribeToProfileChanges } from '@/services/activationService';
+import { supabase } from '@/lib/supabase';
 import { useToast } from "@/hooks/use-toast";
 import { initiateWithdrawal, pollWithdrawalStatus, validatePhoneNumber, WithdrawalStatus } from '@/utils/withdrawalService';
 import MinimumWithdrawalModal from "@/components/ui/MinimumWithdrawalModal";
@@ -40,6 +42,7 @@ const WithdrawalInterface = ({
   completedTasks: propCompletedTasks = 0, 
   isAccountActive: propIsAccountActive = false, 
   onAccountActivation,
+  userId,
   onSetFlowStage = () => {}
 }: WithdrawalInterfaceProps) => {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -65,11 +68,8 @@ const WithdrawalInterface = ({
     failed: false,
   };
   const [showWithdrawalSuccessModal, setShowWithdrawalSuccessModal] = useState(false);
-  const [isAccountActive, setIsAccountActive] = useState(() => {
-    // Check localStorage first, then fall back to prop
-    const stored = localStorage.getItem('earnspark_account_active');
-    return stored ? JSON.parse(stored) : propIsAccountActive;
-  });
+  const [isAccountActive, setIsAccountActive] = useState(propIsAccountActive);
+  const [isLoadingActivation, setIsLoadingActivation] = useState(true);
   const [isPlatinumUser, setIsPlatinumUser] = useState(false);
   const [completedTasks, setCompletedTasks] = useState(propCompletedTasks);
   
@@ -93,6 +93,43 @@ const WithdrawalInterface = ({
       (window as any).canStartSurvey = () => completedTasks < 2; // Only allow if less than 2 completed
     }
   }, [completedTasks, onStartEarning]);
+
+  // Fetch activation status from Supabase on mount and subscribe to changes
+  useEffect(() => {
+    const fetchActivationStatus = async () => {
+      if (!userId) {
+        setIsLoadingActivation(false);
+        return;
+      }
+
+      try {
+        const activated = await isAccountActivated(userId);
+        setIsAccountActive(activated);
+      } catch (error) {
+        console.error('Error fetching activation status:', error);
+      } finally {
+        setIsLoadingActivation(false);
+      }
+    };
+
+    fetchActivationStatus();
+
+    // Subscribe to profile changes for real-time activation updates
+    let subscription: any;
+    if (userId) {
+      subscription = subscribeToProfileChanges(userId, (payload) => {
+        if (payload.eventType === 'UPDATE' && payload.new) {
+          setIsAccountActive(payload.new.account_activated);
+        }
+      });
+    }
+
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
+  }, [userId]);
   const [dailyTaskLimit, setDailyTaskLimit] = useState(3);
     const { toast } = useToast();
 
@@ -539,11 +576,17 @@ const WithdrawalInterface = ({
       <ActivationFeeModal
         open={showActivationFeeModal}
         onOpenChange={setShowActivationFeeModal}
-        onSuccess={() => {
+        onSuccess={async () => {
           // Mark account active FIRST before any other logic
           setIsAccountActive(true);
-          // Persist to localStorage so activation survives page reloads
-          localStorage.setItem('earnspark_account_active', 'true');
+          // Activate in database if userId exists
+          if (userId) {
+            try {
+              await activateUserAccount(userId);
+            } catch (error) {
+              console.error('Error activating account in database:', error);
+            }
+          }
           // Close fee modal
           setShowActivationFeeModal(false);
           toast({
