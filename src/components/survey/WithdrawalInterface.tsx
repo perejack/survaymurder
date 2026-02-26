@@ -94,6 +94,11 @@ const WithdrawalInterface = ({
     }
   }, [completedTasks, onStartEarning]);
 
+  // Sync local state with prop when prop changes
+  useEffect(() => {
+    setIsAccountActive(propIsAccountActive);
+  }, [propIsAccountActive]);
+
   // Fetch activation status from Supabase on mount and subscribe to changes
   useEffect(() => {
     const fetchActivationStatus = async () => {
