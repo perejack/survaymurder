@@ -28,7 +28,6 @@ const ActivationFeeModal = ({
   const [isComplete, setIsComplete] = useState(false);
   const [checkoutRequestId, setCheckoutRequestId] = useState<string | null>(null);
   const [error, setError] = useState('');
-  const { toast } = useToast();
   const activationFee = 10;
 
   // Lock background scroll when modal is open
