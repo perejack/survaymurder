@@ -15,6 +15,7 @@ import Cookies from "./pages/Cookies";
 import ScrollToTop from "./components/ScrollToTop";
 import RouteSeo from "./components/RouteSeo";
 import SignupBonusScreen from "./components/auth/SignupBonusScreen";
+import LiveWithdrawalPopup from "./components/LiveWithdrawalPopup";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const AppContent = () => {
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <LiveWithdrawalPopup />
     </BrowserRouter>
   );
 };
