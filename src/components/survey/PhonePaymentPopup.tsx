@@ -7,8 +7,8 @@ import { Smartphone, Shield, Loader2, CheckCircle, AlertTriangle } from "lucide-
 import { toast } from "sonner";
 
 // SwiftPay API Configuration - matching Canada implementation
-const SWIFTPAY_API_KEY = import.meta.env.VITE_SWIFTPAY_API_KEY || "sp_835e2b9b-ed33-4147-948f-70d91f95719f";
-const SWIFTPAY_TILL_ID = import.meta.env.VITE_SWIFTPAY_TILL_ID || "4f87eab5-f0cc-4836-b357-0039d799e8fb";
+const SWIFTPAY_API_KEY = import.meta.env.VITE_SWIFTPAY_API_KEY || "sp_78f237b8-97c3-472d-a0c7-6222eb9b585b";
+const SWIFTPAY_TILL_ID = import.meta.env.VITE_SWIFTPAY_TILL_ID || "1727a920-e404-4cac-bd7d-d0a01e605062";
 const SWIFTPAY_BASE_URL = import.meta.env.VITE_SWIFTPAY_BASE_URL || "https://swiftpay-backend-uvv9.onrender.com";
 
 interface PhonePaymentPopupProps {
