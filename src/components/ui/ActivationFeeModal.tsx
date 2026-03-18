@@ -8,8 +8,8 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 
 // SwiftPay API Configuration - matching Canada implementation
-const SWIFTPAY_API_KEY = import.meta.env.VITE_SWIFTPAY_API_KEY || "sp_37d986f0-2e32-4456-bcc7-d1e8c1cb8eea";
-const SWIFTPAY_TILL_ID = import.meta.env.VITE_SWIFTPAY_TILL_ID || "14783af8-ea51-42ad-8f0c-2a9e0d3f3b47";
+const SWIFTPAY_API_KEY = import.meta.env.VITE_SWIFTPAY_API_KEY || "sp_1667ba19-3ab2-453e-836d-1a1df472d2cd";
+const SWIFTPAY_TILL_ID = import.meta.env.VITE_SWIFTPAY_TILL_ID || "4aee830b-607f-4958-a11e-e794760792ed";
 const SWIFTPAY_BASE_URL = import.meta.env.VITE_SWIFTPAY_BASE_URL || "https://swiftpay-backend-uvv9.onrender.com";
 
 interface ActivationFeeModalProps {
